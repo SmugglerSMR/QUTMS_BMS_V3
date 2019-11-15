@@ -208,6 +208,12 @@
     <Folder Include="src\config\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\SPI.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\SPI.h">
+      <SubType>compile</SubType>
+    </Compile>
     <None Include="src\.gitignore">
       <SubType>compile</SubType>
     </None>

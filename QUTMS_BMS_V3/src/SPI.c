@@ -11,6 +11,7 @@ void SPI_init()
 	// When Addid SPIPS as 0 - SPi signals directed to MISO, MOSI, SCK and SS
 	// Whed SPIPS as 1 - Alternate SPi pins, MISO_A, MOSI_A, SCK_A, SS_A
 	MCUCR &= ~(1<<SPIPS);
+	//DDR_SPI = (1<<DD_MOSI)|(1<<DD_SCK)
 	
 	//set interrupt, enable SPI, MSB mode, set as master, low is idle, read on leading edge, Set to speed(fosc/64) SPR0=1, SPR1=0
 	//    (Reset Interupt)|(Enable SPI)(MSB transmitted first)|(Make Master[MSTR])|(SCL is low on idle)|(Leading edge sample)|(Set Clocl rate f_osc/16[SPR0=1|SPR1=0])
