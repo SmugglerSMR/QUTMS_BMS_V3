@@ -110,7 +110,8 @@ void Morzanka(int code[]) {
 void ADC_init() {
 	// AVcc with capacitor
 	// !!!! If any inaccuaracies accured, choise option without capacitor
-	ADMUX = (1<<REFS0)| (1<<AREFEN);	
+	//ADMUX = (1<<REFS0)| (1<<AREFEN);	// With capacitor
+	ADMUX = (1<<REFS0);
 	ADMUX &= ~(1 << ADLAR); // Ôîãûåüóòå
 	// 16MHz clock/128 prescaler= 125kHz = 0.000008s.
 	ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
@@ -221,46 +222,49 @@ int main (void)
 	// Probing general
 	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	_delay_ms(500);
-	MAX14920_reg_write(0x00,0x00,0x02);
+	MAX14920_reg_write(0b00000000,0b00000000,0x02);
 	
 	
 	// Probing CEL1
 	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	_delay_ms(500);
-	MAX14920_reg_write(0x00,0x00,0x84);
+	MAX14920_reg_write(0b00000000,0b00000000,0b10000100);
 	
 	// Probing CEL1
 	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	_delay_ms(500);
-	MAX14920_reg_write(0x00,0x00,0x84);
+	MAX14920_reg_write(0b00000000,0b00000000,0b10000100);
 	
 	
 	// Probing cell2
 	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	_delay_ms(500);
-	MAX14920_reg_write(0x00,0x00,0xC4);
+	MAX14920_reg_write(0b00000000,0b00000000,0b11000100);
 	
 	// Probing cell2
 	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	_delay_ms(500);
-	MAX14920_reg_write(0x00,0x00,0xC4);
+	MAX14920_reg_write(0b00000000,0b00000000,0b11000100);
 		
 	// Probing cell2
 	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	_delay_ms(500);
-	MAX14920_reg_write(0x00,0x00,0xC4);
+	MAX14920_reg_write(0b00000000,0b00000000,0b11000100);
 	
 	// Probing CEL1
 	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	_delay_ms(500);
-	MAX14920_reg_write(0x00,0x00,0x84);
+	MAX14920_reg_write(0b00000000,0b00000000,0b10000100);
 	
 	// Probing CEL1
 	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	_delay_ms(500);
-	MAX14920_reg_write(0x40,0x00,0x84);
+	MAX14920_reg_write(0x40,0b00000000,0b10000100);
 	
-	
+	// Probing cell2
+	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
+	//_delay_ms(500);
+	//MAX14920_reg_write(0b00000000,0b11000000,0b1100100);	
 	//
 	//// Probing cell3
 	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
@@ -295,7 +299,7 @@ int main (void)
 		Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 		_delay_ms(500);
 		//MAX14920_reg_write(0x01,0x00,0x02);
-		MAX14920_reg_write(0x00,0x30,0x02);
+		MAX14920_reg_write(0b00000000,0b11000000,0b11000000);
 		//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 		//_delay_ms(500);
 		//MAX14920_reg_write(0x00,0x00,0xC4);
