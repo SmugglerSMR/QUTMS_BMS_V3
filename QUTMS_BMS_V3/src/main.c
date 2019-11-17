@@ -39,13 +39,14 @@
 #include "SPI.h"
 void IO_init() {
 	// Initialise LEDs
-	DDRB = 0b10011010;	// CLC-outout LED 5 4 MOSI-output MISO-input
-	DDRC = 0b00001001;	// CS-high LED 3 
+	DDRB = 0b10011010;	// CLC-output LED 5 4 MOSI-output MISO-input
+	DDRC = 0b01001001;	// SAMPL-high CS-high LED 3 
 	DDRD = 0b00001011;	// SS-high LED 7 6
 	
 	//PORTC |= (1<<PINC3); // Set SS as output high
 	//PORTB |= (1<<PINB1); //SET MOSi as output
 	// TODO: COMLETE THOSE PARTS
+	//PORTC |= (1<<PINC6) | (1<<PINC3); // Disable sampler and CS.
 }
 
 /*
@@ -167,11 +168,31 @@ int * DecToBin(double nn) {
 
 void MAX14920_reg_write(uint8_t balanc_one, uint8_t balanc_two, uint8_t cells) {
 	uint8_t output;
+	
+	//PORTC &= ~(1<<PINC6); // Sampl_disable 	
+	//_delay_ms(30);
+	//
+	//PORTC &= ~(1<<PINC6); // Sampl_disable 		
 	MAX14920_PORT_CS &= ~(1<<MAX14920_PIN_CS); // unset to start transmission
 	SPI_send_byte(balanc_one);
-	SPI_send_byte(balanc_two);
+	SPI_send_byte(balanc_two);	
 	output = SPI_send_byte(cells);
-	MAX14920_PORT_CS |= 1<<MAX14920_PIN_CS; // Set back.
+	MAX14920_PORT_CS |= 1<<MAX14920_PIN_CS; // Set back.	
+	//PORTC |= (1<<PINC6); // Sampl_disable 
+	//_delay_ms(50);
+	//
+	//
+	//SPI_send_byte(balanc_one);
+	//SPI_send_byte(balanc_two);
+	//output = SPI_send_byte(cells);
+	//
+	_delay_ms(10);
+	
+	
+	
+	
+	
+
 	// ADC output is next thing to do
 	// Try get response or similar
 	int bit_test = 0;
@@ -183,7 +204,7 @@ void MAX14920_reg_write(uint8_t balanc_one, uint8_t balanc_two, uint8_t cells) {
 	//Getting ADC value
 	//uint16_t ADC_v = ADC6_read();
 	
-	//uint16_t ADC_v = adc_read(6);
+	uint16_t ADC_v = adc_read(6);
 	//double res_voltage = ADC_v;
 	//double res_voltage = 600/(double)ADC_v;
 	//int *p = DecToBin(res_voltage);
@@ -219,10 +240,15 @@ int main (void)
 	/* Insert application code here, after the board has been initialized. */
 	_delay_ms(3000);
 	
-	// Probing general
+	// Dummy send
 	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0x02);
+	MAX14920_reg_write(0b00000000,0b00000000,0x00000000);
+	
+	// General probe
+	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
+	_delay_ms(500);
+	MAX14920_reg_write(0b00000000,0b00000000,0b0);
 	
 	
 	// Probing CEL1
