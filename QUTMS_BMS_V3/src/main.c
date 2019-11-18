@@ -37,13 +37,21 @@
 #include <util/delay.h>
 
 #include "SPI.h"
+
+static const int cellTable[] = {
+	0b0000, 0b1000, 0b0100, 0b1100,
+	0b0010, 0b1010, 0b0110, 0b1110,
+	0b0001, 0b1001, 0b0101, 0b1101
+};
+
 void IO_init() {
 	// Initialise LEDs
-	DDRB = 0b10011010;	// CLC-output LED 5 4 MOSI-output MISO-input
-	DDRC = 0b01001001;	// SAMPL-high CS-high LED 3 
+	DDRB = 0b10011010;	// CLK-output LED 5 4 MOSI-output MISO-input
+	DDRC = 0b01001001;	// SAMPL-low CS-high LED 3 
 	DDRD = 0b00001011;	// SS-high LED 7 6
 	
-	//PORTC |= (1<<PINC3); // Set SS as output high
+	PORTC |= (1<<PINC3); // Set SS as output high
+	PORTC |= (1<<PINC6); // Set SAMPL high to track voltage at CV
 	//PORTB |= (1<<PINB1); //SET MOSi as output
 	// TODO: COMLETE THOSE PARTS
 	//PORTC |= (1<<PINC6) | (1<<PINC3); // Disable sampler and CS.
@@ -112,7 +120,7 @@ void ADC_init() {
 	// AVcc with capacitor
 	// !!!! If any inaccuaracies accured, choise option without capacitor
 	//ADMUX = (1<<REFS0)| (1<<AREFEN);	// With capacitor
-	ADMUX = (1<<REFS0);
+	ADMUX = (1<<REFS0); // Without capacitor
 	ADMUX &= ~(1 << ADLAR); // Ôîãûåüóòå
 	// 16MHz clock/128 prescaler= 125kHz = 0.000008s.
 	ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
@@ -139,12 +147,18 @@ Notes   :
 ============================================================================*/
 uint16_t adc_read(uint8_t channel) 
 {   
-    channel = (ADMUX & 0xe0)|(channel & 0x1F); /* only change ADMUX bits signalling which channel to use */
+	/* only change ADMUX bits signalling which channel to use */
+    channel = (ADMUX & 0xe0)|(channel & 0x1F); 
 	ADMUX = channel;
-	//SET_BIT(ADCSRA, ADSC); /* start conversion process */
+	
+	/* start conversion process */
+	//SET_BIT(ADCSRA, ADSC);
 	ADCSRA |= (1<<ADSC);
-	//while(!(CHECK_BIT(ADCSRA, ADIF))); /* loop while the conversion is taking place */
+	
+	/* loop while the conversion is taking place */
+	//while(!(CHECK_BIT(ADCSRA, ADIF)));
 	while ( ADCSRA & (1 << ADSC) ) {}
+	
 	uint16_t result = 0;	
 	result = ADCL; /* read ADCL, then ADCH --> order is important! */							
 	result |= ((3 & ADCH) << 8);
@@ -166,132 +180,95 @@ int * DecToBin(double nn) {
 #define MAX14920_PORT_CS	PORTC
 #define MAX14920_PIN_CS		PINC3		//***
 
-void MAX14920_reg_write(uint8_t balanc_one, uint8_t balanc_two, uint8_t cells) {
+void MAX14920_reg_write(uint8_t CB1_CB8, uint8_t CB9_CB16, uint8_t ECS) {
 	uint8_t output;
 	
 	//PORTC &= ~(1<<PINC6); // Sampl_disable 	
-	//_delay_ms(30);
+	//_delay_ms(50);
 	//
 	//PORTC &= ~(1<<PINC6); // Sampl_disable 		
 	MAX14920_PORT_CS &= ~(1<<MAX14920_PIN_CS); // unset to start transmission
-	SPI_send_byte(balanc_one);
-	SPI_send_byte(balanc_two);	
-	output = SPI_send_byte(cells);
+	SPI_send_byte(CB1_CB8);
+	SPI_send_byte(CB9_CB16);	
+	output = SPI_send_byte(ECS);
 	MAX14920_PORT_CS |= 1<<MAX14920_PIN_CS; // Set back.	
-	//PORTC |= (1<<PINC6); // Sampl_disable 
-	//_delay_ms(50);
-	//
-	//
-	//SPI_send_byte(balanc_one);
-	//SPI_send_byte(balanc_two);
-	//output = SPI_send_byte(cells);
-	//
 	_delay_ms(10);
-	
-	
-	
-	
-	
+}
 
+void MAX14920_ReadData() {
+	PORTC &= ~(1<<PINC6); // Set SAMPL low to make ready
 	// ADC output is next thing to do
 	// Try get response or similar
 	int bit_test = 0;
+	
 	//ADC0_BASE
 	// TEST LINE for blicking
 	//output = 0b0001000;
 	
-	
-	//Getting ADC value
-	//uint16_t ADC_v = ADC6_read();
-	
+	// Send dummy value
+	MAX14920_reg_write(0x00,0x00,0b00000100);
+	//Getting ADC value		
 	uint16_t ADC_v = adc_read(6);
-	//double res_voltage = ADC_v;
+	
+	PORTC |= (1<<PINC6); // Set SAMPL high to track voltage at CV
+	
+	double res_voltage = ADC_v;
 	//double res_voltage = 600/(double)ADC_v;
-	//int *p = DecToBin(res_voltage);
-	//for(int i = 0; i < 5;i++) if(p[i]==1) Toggle_LED(3+i,3000);
-	//if(a[0] == 1) Toggle_LED(3,3000);
-	//if(a[1] == 1) Toggle_LED(4,3000);
-	//if(a[2] == 1) Toggle_LED(5,3000);
-	//if(a11)
+	int *p = DecToBin(res_voltage);
+	//for(int i = 0; i < 5;i++) if(p[i]==1) Toggle_LED(3+i,500);
 	
 	//if(res_voltage<25) Toggle_LED(6,1);
 	//else Toggle_LED(7,1);
 	////
 	//while (bit_test < 8) {
-		//if (output & 0x01) {
-			//Toggle_LED(4,2000);
-		//}
-		//else {
-			//Toggle_LED(5,500);
-		//}
-//
-		//bit_test++;
-		//output = output >> 1;
+	//if (output & 0x01) {
+	//Toggle_LED(4,2000);
 	//}
+	//else {
+	//Toggle_LED(5,500);
+	//}
+	//
+	//bit_test++;
+	//output = output >> 1;
+	//}	
 }
-
 int main (void)
 {
 	/* Insert system clock initialization code here (sysclk_init()). */
-	board_init();
+	//board_init();
 	IO_init();
 	SPI_init();
 	ADC_init();
 	/* Insert application code here, after the board has been initialized. */
-	_delay_ms(3000);
-	
+	//_delay_ms(3000);
 	// Dummy send
 	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	_delay_ms(500);
 	MAX14920_reg_write(0b00000000,0b00000000,0x00000000);
 	
-	// General probe
-	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0b0);
-	
-	
 	// Probing CEL1
 	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0b10000100);
+	MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
+	_delay_ms(50); // Wait for voltage to be shifted to GndRef
+	MAX14920_reg_write(0b00000000,0b00000000,0b10000000|(cellTable[0]<<7));
+	MAX14920_ReadData();
 	
-	// Probing CEL1
+	// Testing Diag
+	MAX14920_reg_write(0b00000000,0b00000000,0x00000100);
 	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0b10000100);
+	MAX14920_reg_write(0b00000000,0b00000000,0b00000110);
+	_delay_ms(500); // Wait for voltage to be shifted to GndRef
+	MAX14920_reg_write(0b00000000,0b00000000,0b00000000);
+	MAX14920_ReadData();
 	
-	
-	// Probing cell2
-	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0b11000100);
-	
-	// Probing cell2
-	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0b11000100);
-		
-	// Probing cell2
-	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0b11000100);
-	
-	// Probing CEL1
-	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0b10000100);
-	
-	// Probing CEL1
-	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	_delay_ms(500);
-	MAX14920_reg_write(0x40,0b00000000,0b10000100);
 	
 	// Probing cell2
 	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	//_delay_ms(500);
-	//MAX14920_reg_write(0b00000000,0b11000000,0b1100100);	
-	//
+	//MAX14920_reg_write(0b00000000,0b00000000,0b11000100);
+	
 	//// Probing cell3
 	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	//_delay_ms(500);
@@ -307,28 +284,16 @@ int main (void)
 	//_delay_ms(500);
 	//MAX14920_reg_write(0x00,0x00,0xE4);
 	//
-	// Probing general
-	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	//_delay_ms(500);
-	//MAX14920_reg_write(0x00,0x00,0x02);
-	//// Probing general
-	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	//_delay_ms(500);
-	//MAX14920_reg_write(0x00,0x00,0x02);
-	//// Probing general
-	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	//_delay_ms(500);
-	//MAX14920_reg_write(0x00,0x00,0x02);
+	
 	// Loop to hold processor
 	while(1) {
 		Toggle_LED(7, 2000);
-		Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-		_delay_ms(500);
-		//MAX14920_reg_write(0x01,0x00,0x02);
-		MAX14920_reg_write(0b00000000,0b11000000,0b11000000);
+		MAX14920_reg_write(0b00000000,0b00000000,0x00000100);
 		//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-		//_delay_ms(500);
-		//MAX14920_reg_write(0x00,0x00,0xC4);
-		
+		_delay_ms(500);
+		MAX14920_reg_write(0b00000000,0b00000000,0b00000110);
+		_delay_ms(500); // Wait for voltage to be shifted to GndRef
+		MAX14920_reg_write(0b00000000,0b00000000,0b00000000);
+		MAX14920_ReadData();
 	}
 }
