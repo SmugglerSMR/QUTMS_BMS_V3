@@ -5,13 +5,14 @@
  *  Author: sadykov
  */ 
 #include "ADC.h"
+#include "macros.h"
 
 void ADC_init(void) {
 	// AVcc with capacitor
 	// !!!! If any inaccuaracies accured, choise option without capacitor
 	//ADMUX = (1<<REFS0)| (1<<AREFEN);	// With capacitor
 	ADMUX = (1<<REFS0); // Without capacitor
-	ADMUX &= ~(1 << ADLAR); // Should be good enough
+	CLEAR_BIT(ADMUX, ADLAR); /* make sure bits are right adjusted */	
 	// 16MHz clock/128 prescaler= 125kHz = 0.000008s.
 	ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
 }
@@ -42,8 +43,7 @@ uint16_t adc_read(uint8_t channel)
 	ADMUX = channel;
 	
 	/* start conversion process */
-	//SET_BIT(ADCSRA, ADSC);
-	ADCSRA |= (1<<ADSC);
+	SET_BIT(ADCSRA, ADSC);	
 	
 	/* loop while the conversion is taking place */
 	//while(!(CHECK_BIT(ADCSRA, ADIF)));
@@ -53,7 +53,6 @@ uint16_t adc_read(uint8_t channel)
 	result = ADCL; /* read ADCL, then ADCH --> order is important! */							
 	result |= ((3 & ADCH) << 8);
 	//--> also not sure if this code is correct. other ADC examples return 'ADC' instead. //
-	//SET_BIT(ADCSRA, ADIF); /* clear 'complete' status */
-	ADCSRA |= (1<<ADIF);
+	SET_BIT(ADCSRA, ADIF); /* clear 'complete' status */	
 	return result;
 }

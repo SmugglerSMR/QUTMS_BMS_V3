@@ -217,6 +217,12 @@
     <Compile Include="src\macros.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\MAX14920.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\MAX14920.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\SPI.c">
       <SubType>compile</SubType>
     </Compile>

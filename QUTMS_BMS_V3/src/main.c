@@ -36,11 +36,10 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#include "SPI.h"
 #include "macros.h"
+#include "SPI.h"
 #include "ADC.h"
-#define MAX14920_PORT_CS	PORTC
-#define MAX14920_PIN_CS		PINC3		//***
+#include "MAX14920.h"
 
 static const int cellTable[] = {
 	0b0000, 0b1000, 0b0100, 0b1100,
@@ -48,16 +47,20 @@ static const int cellTable[] = {
 	0b0001, 0b1001, 0b0101, 0b1101
 };
 
-void IO_init() {
+void IO_init(void);
+void Toggle_LED(int id, int delay, int times);
+int * DecToBin(double nn);
+
+void IO_init(void) {
 	// Initialise LEDs
 	DDRB = 0b10011010;	// CLK-output LED 5 4 MOSI-output MISO-input
 	DDRC = 0b01001001;	// SAMPL-low CS-high LED 3 
-	DDRD = 0b00001011;	// SS-high LED 7 6
+	DDRD = 0b10001011;	// EN-MAX SS-high LED 7 6
 	
 	//PORTC |= (1<<PINC3); 
 	//PORTC |= (1<<PINC6); 
 	SET_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS); // Set SS as output high
-	SET_BIT(PORTC, PINC6); // Set SAMPL high to track voltage at CV
+	//SET_BIT(PORTC, PINC6); // Set SAMPL high to track voltage at CV
 		
 	//PORTB |= (1<<PINB1); //SET MOSi as output
 	// TODO: COMLETE THOSE PARTS
@@ -135,59 +138,6 @@ int * DecToBin(double nn) {
 	return a;
 }
 
-void MAX14920_reg_write(uint8_t CB1_CB8, uint8_t CB9_CB16, uint8_t ECS) {
-	uint8_t output;
-	
-	//PORTC &= ~(1<<PINC6); // Sampl_disable 	
-	//_delay_ms(50);
-	//
-	//PORTC &= ~(1<<PINC6); // Sampl_disable 			
-	CLEAR_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS); // unset to start transmission
-	SPI_send_byte(CB1_CB8);
-	SPI_send_byte(CB9_CB16);	
-	output = SPI_send_byte(ECS);
-	MAX14920_PORT_CS |= 1<<MAX14920_PIN_CS; // Set back.	
-	SET_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS);
-	_delay_ms(10);
-}
-
-void MAX14920_ReadData() {
-	PORTC &= ~(1<<PINC6); // Set SAMPL low to make ready
-	// ADC output is next thing to do
-	// Try get response or similar
-	int bit_test = 0;
-	
-	//ADC0_BASE
-	// TEST LINE for blicking
-	//output = 0b0001000;
-	
-	// Send dummy value
-	MAX14920_reg_write(0x00,0x00,0b00000100);
-	//Getting ADC value		
-	uint16_t ADC_v = adc_read(6);
-	
-	PORTC |= (1<<PINC6); // Set SAMPL high to track voltage at CV
-	
-	double res_voltage = ADC_v;
-	//double res_voltage = 600/(double)ADC_v;
-	int *p = DecToBin(res_voltage);
-	//for(int i = 0; i < 5;i++) if(p[i]==1) Toggle_LED(3+i,500);
-	
-	//if(res_voltage<25) Toggle_LED(6,1);
-	//else Toggle_LED(7,1);
-	////
-	//while (bit_test < 8) {
-	//if (output & 0x01) {
-	//Toggle_LED(4,2000);
-	//}
-	//else {
-	//Toggle_LED(5,500);
-	//}
-	//
-	//bit_test++;
-	//output = output >> 1;
-	//}	
-}
 int main (void)
 {
 	/* Insert system clock initialization code here (sysclk_init()). */
@@ -195,6 +145,8 @@ int main (void)
 	IO_init();
 	SPI_init();
 	ADC_init();
+	MAX14920_Enable();
+	
 	/* Insert application code here, after the board has been initialized. */
 	//_delay_ms(3000);
 	
@@ -207,7 +159,7 @@ int main (void)
 	MAX14920_ReadData();
 	
 	// Testing Diag
-	MAX14920_reg_write(0b00000000,0b00000000,0x00000100);
+	MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
 	Toggle_LED(7, 150, 4);
 	_delay_ms(500);
 	MAX14920_reg_write(0b00000000,0b00000000,0b00000110);
@@ -224,7 +176,7 @@ int main (void)
 	// Loop to hold processor
 	while(1) {
 		Toggle_LED(7, 1000,2);
-		MAX14920_reg_write(0b00000000,0b00000000,0x00000100);
+		MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
 		//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 		_delay_ms(500);
 		MAX14920_reg_write(0b00000000,0b00000000,0b00000110);
