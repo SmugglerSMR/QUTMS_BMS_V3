@@ -41,12 +41,6 @@
 #include "ADC.h"
 #include "MAX14920.h"
 
-static const int cellTable[] = {
-	0b0000, 0b1000, 0b0100, 0b1100,
-	0b0010, 0b1010, 0b0110, 0b1110,
-	0b0001, 0b1001, 0b0101, 0b1101
-};
-
 void IO_init(void);
 void Toggle_LED(int id, int delay, int times);
 int * DecToBin(double nn);
@@ -155,7 +149,7 @@ int main (void)
 	_delay_ms(500);
 	MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
 	_delay_ms(50); // Wait for voltage to be shifted to GndRef
-	MAX14920_reg_write(0b00000000,0b00000000,0b10000000|(cellTable[0]<<7));
+	MAX14920_reg_write(0b00000000,0b00000000,0b10000000);
 	MAX14920_ReadData();
 	
 	// Testing Diag

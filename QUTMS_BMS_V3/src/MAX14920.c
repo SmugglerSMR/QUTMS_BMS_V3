@@ -9,6 +9,12 @@
 #include "SPI.h"
 #include "ADC.h"
 
+static const int cellTable[] = {
+	0b0000, 0b1000, 0b0100, 0b1100,
+	0b0010, 0b1010, 0b0110, 0b1110,
+	0b0001, 0b1001, 0b0101, 0b1101
+};
+
 void MAX14920_reg_write(uint8_t CB1_CB8, uint8_t CB9_CB16, uint8_t ECS) {
 	uint8_t output;
 	
@@ -96,4 +102,21 @@ void MAX14920_ReadData(void) {
 	//bit_test++;
 	//output = output >> 1;
 	//}
+}
+//TODO! Nees a structure, to keep what balancing command has been sent already, as a global variable.
+void MAX14920_ReadCellVoltage(int cellN) {
+	
+	// Disable Sampler??
+	//SET_BIT(MAX14920_PORT_CS, PINC6);
+	
+	if(cellN !=0) {
+		WRITE_BIT(MAX14920_PORT_CS, PINC6, LOW);
+		MAX14920_reg_write(0x00, 0x00,0x80||(cellTable[cellN-1]<<7));
+		_delay_ms(10);
+		MAX14920_ReadData();
+	}
+}
+
+void MAX14920_ReadAllCellsVoltage() {
+	
 }
