@@ -11,7 +11,7 @@
 
 #include <avr/io.h>
 
-void SPI_init();
+void SPI_init(void);
 uint8_t SPI_send_byte(uint8_t c);
 void SPI_MasterTransmit(char cData);
 

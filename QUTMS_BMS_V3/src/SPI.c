@@ -6,7 +6,7 @@
  */ 
 #include "SPI.h"
 
-void SPI_init()
+void SPI_init(void)
 {
 	// When Addid SPIPS as 0 - SPi signals directed to MISO, MOSI, SCK and SS
 	// Whed SPIPS as 1 - Alternate SPi pins, MISO_A, MOSI_A, SCK_A, SS_A
