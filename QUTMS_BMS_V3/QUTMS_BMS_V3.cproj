@@ -208,6 +208,12 @@
     <Folder Include="src\config\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\ADC.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ADC.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\macros.h">
       <SubType>compile</SubType>
     </Compile>

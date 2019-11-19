@@ -38,6 +38,9 @@
 
 #include "SPI.h"
 #include "macros.h"
+#include "ADC.h"
+#define MAX14920_PORT_CS	PORTC
+#define MAX14920_PIN_CS		PINC3		//***
 
 static const int cellTable[] = {
 	0b0000, 0b1000, 0b0100, 0b1100,
@@ -51,8 +54,11 @@ void IO_init() {
 	DDRC = 0b01001001;	// SAMPL-low CS-high LED 3 
 	DDRD = 0b00001011;	// SS-high LED 7 6
 	
-	PORTC |= (1<<PINC3); // Set SS as output high
-	PORTC |= (1<<PINC6); // Set SAMPL high to track voltage at CV
+	//PORTC |= (1<<PINC3); 
+	//PORTC |= (1<<PINC6); 
+	SET_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS); // Set SS as output high
+	SET_BIT(PORTC, PINC6); // Set SAMPL high to track voltage at CV
+		
 	//PORTB |= (1<<PINB1); //SET MOSi as output
 	// TODO: COMLETE THOSE PARTS
 	//PORTC |= (1<<PINC6) | (1<<PINC3); // Disable sampler and CS.
@@ -64,8 +70,7 @@ void IO_init() {
 	int delay: Time in ms
 */
 void Toggle_LED(int id, int delay, int times) {
-	for(int i = 0; i < times; i++) {
-		
+	for(int i = 0; i < times; i++) {		
 		switch(id) {		
 			case 5:		// red
 				PORTB ^= 0b00010000;
@@ -120,58 +125,6 @@ void Toggle_LED(int id, int delay, int times) {
 	//Toggle_LED(4,5000);
 //}
 
-void ADC_init() {
-	// AVcc with capacitor
-	// !!!! If any inaccuaracies accured, choise option without capacitor
-	//ADMUX = (1<<REFS0)| (1<<AREFEN);	// With capacitor
-	ADMUX = (1<<REFS0); // Without capacitor
-	ADMUX &= ~(1 << ADLAR); // Ôîãûåüóòå
-	// 16MHz clock/128 prescaler= 125kHz = 0.000008s.
-	ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
-}
-
-uint16_t ADC6_read() {
-	// Set to PB5 or ADC6 | REFS0 defines AVcc with no external capacitor connected on the AREF pin
-	ADMUX = (1<<REFS0)| (1<<ADLAR) | (1<<MUX2) | (1<<MUX1);
-	
-	// Start single conversion by setting ADSC bit in ADCSRA
-	ADCSRA |= (1 << ADSC);
-	while ( ADCSRA & (1 << ADSC) ) {}
-	return ADC;
-}
-
-/*============================================================================
-Function:   adc_read()
-------------------------------------------------------------------------------
-Purpose :   reads an analog input voltage and converts it to a 10-bit digital
-			value through successive approximation
-Input   :   uint8_t channel - selected analog input channel
-Returns :   result - pass the 10 bit ADC number to requesting function
-Notes   :
-============================================================================*/
-uint16_t adc_read(uint8_t channel) 
-{   
-	/* only change ADMUX bits signalling which channel to use */
-    channel = (ADMUX & 0xe0)|(channel & 0x1F); 
-	ADMUX = channel;
-	
-	/* start conversion process */
-	//SET_BIT(ADCSRA, ADSC);
-	ADCSRA |= (1<<ADSC);
-	
-	/* loop while the conversion is taking place */
-	//while(!(CHECK_BIT(ADCSRA, ADIF)));
-	while ( ADCSRA & (1 << ADSC) ) {}
-	
-	uint16_t result = 0;	
-	result = ADCL; /* read ADCL, then ADCH --> order is important! */							
-	result |= ((3 & ADCH) << 8);
-	//--> also not sure if this code is correct. other ADC examples return 'ADC' instead. //
-	//SET_BIT(ADCSRA, ADIF); /* clear 'complete' status */
-	ADCSRA |= (1<<ADIF);
-	return result;
-}
-
 int * DecToBin(double nn) {
 	static int a[5];
 	int n = (int) nn;	
@@ -181,8 +134,6 @@ int * DecToBin(double nn) {
 	}
 	return a;
 }
-#define MAX14920_PORT_CS	PORTC
-#define MAX14920_PIN_CS		PINC3		//***
 
 void MAX14920_reg_write(uint8_t CB1_CB8, uint8_t CB9_CB16, uint8_t ECS) {
 	uint8_t output;
@@ -190,12 +141,13 @@ void MAX14920_reg_write(uint8_t CB1_CB8, uint8_t CB9_CB16, uint8_t ECS) {
 	//PORTC &= ~(1<<PINC6); // Sampl_disable 	
 	//_delay_ms(50);
 	//
-	//PORTC &= ~(1<<PINC6); // Sampl_disable 		
-	MAX14920_PORT_CS &= ~(1<<MAX14920_PIN_CS); // unset to start transmission
+	//PORTC &= ~(1<<PINC6); // Sampl_disable 			
+	CLEAR_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS); // unset to start transmission
 	SPI_send_byte(CB1_CB8);
 	SPI_send_byte(CB9_CB16);	
 	output = SPI_send_byte(ECS);
 	MAX14920_PORT_CS |= 1<<MAX14920_PIN_CS; // Set back.	
+	SET_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS);
 	_delay_ms(10);
 }
 
@@ -245,10 +197,6 @@ int main (void)
 	ADC_init();
 	/* Insert application code here, after the board has been initialized. */
 	//_delay_ms(3000);
-	// Dummy send
-	Toggle_LED(7, 150, 4);
-	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0x00000000);
 	
 	// Probing CEL1
 	Toggle_LED(7, 150, 4);
@@ -271,23 +219,7 @@ int main (void)
 	// Probing cell2
 	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 	//_delay_ms(500);
-	//MAX14920_reg_write(0b00000000,0b00000000,0b11000100);
-	
-	//// Probing cell3
-	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	//_delay_ms(500);
-	//MAX14920_reg_write(0x00,0x00,0xA4);
-	//
-	//// Probing cell4
-	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	//_delay_ms(500);
-	//MAX14920_reg_write(0x00,0x00,0xE4);
-	//
-	//// Probing cell5
-	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	//_delay_ms(500);
-	//MAX14920_reg_write(0x00,0x00,0xE4);
-	//
+	//MAX14920_reg_write(0b00000000,0b00000000,0b11000100);	
 	
 	// Loop to hold processor
 	while(1) {
