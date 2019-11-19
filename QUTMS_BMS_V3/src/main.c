@@ -37,6 +37,7 @@
 #include <util/delay.h>
 
 #include "SPI.h"
+#include "macros.h"
 
 static const int cellTable[] = {
 	0b0000, 0b1000, 0b0100, 0b1100,
@@ -62,59 +63,62 @@ void IO_init() {
 	int id:	ID as appear on a board
 	int delay: Time in ms
 */
-void Toggle_LED(int id, int delay) {
-	switch(id) {		
-		case 5:		// red
-			PORTB ^= 0b00010000;
-			for (int i = 0; i < delay; i++)	{
-				_delay_ms(1);
-			}
-			PORTB ^= 0b00000000;
-			break;			
-		case 4:		// blue
-			PORTB ^= 0b00001000;
-			for (int i = 0; i < delay; i++)	{
-				_delay_ms(1);
-			}
-			PORTB ^= 0b00000000;
-			break;
-		case 3:		// blue
-			PORTC ^= 0b00000000;
-			for (int i = 0; i < delay; i++)	{
-				_delay_ms(1);
-			}
-			PORTC ^= 0b00000000;
-			break;		
-		case 7:		// white
-			PORTD ^= 0b00000010;
-			for (int i = 0; i < delay; i++)	{
-				_delay_ms(1);
-			}
-			PORTD ^= 0b00000000;
-			break;
-		case 6:		// red
-			PORTD ^= 0b00000001;
-			for (int i = 0; i < delay; i++)	{
-				_delay_ms(1);
-			}
-			PORTD ^= 0b00000000;
-			break;
+void Toggle_LED(int id, int delay, int times) {
+	for(int i = 0; i < times; i++) {
+		
+		switch(id) {		
+			case 5:		// red
+				PORTB ^= 0b00010000;
+				for (int i = 0; i < delay; i++)	{
+					_delay_ms(1);
+				}
+				PORTB ^= 0b00010000;
+				break;			
+			case 4:		// blue
+				PORTB ^= 0b00001000;
+				for (int i = 0; i < delay; i++)	{
+					_delay_ms(1);
+				}
+				PORTB ^= 0b00001000;
+				break;
+			case 3:		// blue
+				PORTC ^= 0b00000001;
+				for (int i = 0; i < delay; i++)	{
+					_delay_ms(1);
+				}
+				PORTC ^= 0b00000001;
+				break;		
+			case 7:		// white
+				PORTD ^= 0b00000010;
+				for (int i = 0; i < delay; i++)	{
+					_delay_ms(1);
+				}
+				PORTD ^= 0b00000010;
+				break;
+			case 6:		// red
+				PORTD ^= 0b00000001;
+				for (int i = 0; i < delay; i++)	{
+					_delay_ms(1);
+				}
+				PORTD ^= 0b00000001;
+				break;
+		}
 	}
 }
 
-/*
-	Simply speaking - Morze code.
-	Use it to chech if bits in register as expected.
-	TOSO: Rewirete it to fit registers.
-*/
-void Morzanka(int code[]) {
-	for (int i = 0; i < 8; i++) {
-		if(code[i] == 0) Toggle_LED(4,500);
-		else Toggle_LED(4,2000);
-		Toggle_LED(4,200);
-	}
-	Toggle_LED(4,5000);
-}
+///*
+	//Simply speaking - Morze code.
+	//Use it to chech if bits in register as expected.
+	//TOSO: Rewirete it to fit registers.
+//*/
+//void Morzanka(int code[]) {
+	//for (int i = 0; i < 8; i++) {
+		//if(code[i] == 0) Toggle_LED(4,500);
+		//else Toggle_LED(4,2000);
+		//Toggle_LED(4,200);
+	//}
+	//Toggle_LED(4,5000);
+//}
 
 void ADC_init() {
 	// AVcc with capacitor
@@ -242,12 +246,12 @@ int main (void)
 	/* Insert application code here, after the board has been initialized. */
 	//_delay_ms(3000);
 	// Dummy send
-	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
+	Toggle_LED(7, 150, 4);
 	_delay_ms(500);
 	MAX14920_reg_write(0b00000000,0b00000000,0x00000000);
 	
 	// Probing CEL1
-	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
+	Toggle_LED(7, 150, 4);
 	_delay_ms(500);
 	MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
 	_delay_ms(50); // Wait for voltage to be shifted to GndRef
@@ -256,7 +260,7 @@ int main (void)
 	
 	// Testing Diag
 	MAX14920_reg_write(0b00000000,0b00000000,0x00000100);
-	Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
+	Toggle_LED(7, 150, 4);
 	_delay_ms(500);
 	MAX14920_reg_write(0b00000000,0b00000000,0b00000110);
 	_delay_ms(500); // Wait for voltage to be shifted to GndRef
@@ -287,7 +291,7 @@ int main (void)
 	
 	// Loop to hold processor
 	while(1) {
-		Toggle_LED(7, 2000);
+		Toggle_LED(7, 1000,2);
 		MAX14920_reg_write(0b00000000,0b00000000,0x00000100);
 		//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 		_delay_ms(500);
