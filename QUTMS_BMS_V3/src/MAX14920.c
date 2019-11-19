@@ -28,7 +28,7 @@ void MAX14920_reg_write(uint8_t CB1_CB8, uint8_t CB9_CB16, uint8_t ECS) {
 void MAX14920_Enable(void) {
 
 	//PORTC |= (1<<PINC6); // Set SAMPL high to track voltage at CV
-	PORTD |= (1<<PIND7); // SET EN High to enable device shutdown mode. It resets the SPI register, make sure it's on
+//	PORTD |= (1<<PIND7); // SET EN High to enable device shutdown mode. It resets the SPI register, make sure it's on
 	_delay_ms(1);
 	//MAX14920_PORT_CS &= ~(1<<MAX14920_PIN_CS); // unset to start transmission
 	//_delay_ms(1);
@@ -43,7 +43,7 @@ void MAX14920_Enable(void) {
 	SPI_send_byte(0x00); // fIRST 8 BIT NEVER GETS SEND
 	uint8_t status = 0b00000010;
 	while((status&0b00000010)) {
-		PORTD |= (1<<PIND7); // SET EN High to enable device shutdown mode. It resets the SPI register, make sure it's on
+		//PORTD |= (1<<PIND7); // SET EN High to enable device shutdown mode. It resets the SPI register, make sure it's on
 		_delay_ms(1);
 
 		MAX14920_PORT_CS &= ~(1<<MAX14920_PIN_CS); // unset to start transmission

@@ -59,6 +59,7 @@ void IO_init(void) {
 	
 	//PORTC |= (1<<PINC3); 
 	//PORTC |= (1<<PINC6); 
+	PORTD |= (1<<PIND7); // SET EN High to enable device shutdown mode. It resets the SPI register, make sure it's on
 	SET_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS); // Set SS as output high
 	//SET_BIT(PORTC, PINC6); // Set SAMPL high to track voltage at CV
 		
@@ -149,24 +150,24 @@ int main (void)
 	
 	/* Insert application code here, after the board has been initialized. */
 	//_delay_ms(3000);
-	
-	// Probing CEL1
-	Toggle_LED(7, 150, 4);
-	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
-	_delay_ms(50); // Wait for voltage to be shifted to GndRef
-	MAX14920_reg_write(0b00000000,0b00000000,0b10000000|(cellTable[0]<<7));
-	MAX14920_ReadData();
-	
-	// Testing Diag
-	MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
-	Toggle_LED(7, 150, 4);
-	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0b00000110);
-	_delay_ms(500); // Wait for voltage to be shifted to GndRef
-	MAX14920_reg_write(0b00000000,0b00000000,0b00000000);
-	MAX14920_ReadData();
-	
+	//
+	//// Probing CEL1
+	//Toggle_LED(7, 150, 4);
+	//_delay_ms(500);
+	//MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
+	//_delay_ms(50); // Wait for voltage to be shifted to GndRef
+	//MAX14920_reg_write(0b00000000,0b00000000,0b10000000|(cellTable[0]<<7));
+	//MAX14920_ReadData();
+	//
+	//// Testing Diag
+	//MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
+	//Toggle_LED(7, 150, 4);
+	//_delay_ms(500);
+	//MAX14920_reg_write(0b00000000,0b00000000,0b00000110);
+	//_delay_ms(500); // Wait for voltage to be shifted to GndRef
+	//MAX14920_reg_write(0b00000000,0b00000000,0b00000000);
+	//MAX14920_ReadData();
+	//
 	
 	// Probing cell2
 	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
@@ -176,12 +177,12 @@ int main (void)
 	// Loop to hold processor
 	while(1) {
 		Toggle_LED(7, 1000,2);
-		MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
+		//MAX14920_reg_write(0b00000000,0b00000000,0b00000000);
 		//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
 		_delay_ms(500);
-		MAX14920_reg_write(0b00000000,0b00000000,0b00000110);
+		//MAX14920_reg_write(0b00000000,0b00000000,0b00000110);
 		_delay_ms(500); // Wait for voltage to be shifted to GndRef
 		MAX14920_reg_write(0b00000000,0b00000000,0b00000000);
-		MAX14920_ReadData();
+		//MAX14920_ReadData();
 	}
 }
