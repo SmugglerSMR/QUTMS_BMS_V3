@@ -53,9 +53,18 @@ void IO_init(void) {
 	
 	//PORTC |= (1<<PINC3); 
 	//PORTC |= (1<<PINC6); 
-	SET_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS); // Set SS as output high
-	//SET_BIT(PORTC, PINC6); // Set SAMPL high to track voltage at CV
-		
+	
+	// Set SS as high to disable transmission.
+	WRITE_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS, HIGH);
+	// TODO: Try make MISO and MOSO low
+	
+	// Set SAMPL low to stop any tracking.
+	WRITE_BIT(MAX14920_PORT_SMPLB, MAX14920_PIN_SMPLB, LOW);
+	
+	// Shutdown and reset SPI.
+	WRITE_BIT(MAX14920_PORT_EN, MAX14920_PIN_EN, LOW);
+	
+	// TODO: Check LDO voltage. It should nit be higher than 5.25V
 	//PORTB |= (1<<PINB1); //SET MOSi as output
 	// TODO: COMLETE THOSE PARTS
 	//PORTC |= (1<<PINC6) | (1<<PINC3); // Disable sampler and CS.
