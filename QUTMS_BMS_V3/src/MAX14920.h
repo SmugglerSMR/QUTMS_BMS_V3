@@ -23,6 +23,7 @@
 #define MAX14920_PORT_SMPLB	PORTC
 #define MAX14920_PIN_SMPLB	PINC6		//***
 
+#define MAX14920_CELL_NUMBER	12
 void MAX14920_reg_write(uint8_t CB1_CB8, uint8_t CB9_CB16, uint8_t ECS);
 void MAX14920_Enable(void);
 void MAX14920_OffsetCallibration();
