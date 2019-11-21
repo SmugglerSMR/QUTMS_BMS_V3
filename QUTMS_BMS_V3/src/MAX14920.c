@@ -15,120 +15,126 @@ static const int cellTable[MAX14920_CELL_NUMBER] = {
 	0b0001, 0b1001, 0b0101, 0b1101	// Cells 9,10,11,12
 };
 
-void MAX14920_reg_write(uint8_t CB1_CB8, uint8_t CB9_CB16, uint8_t ECS) {
-	uint8_t output;
+void MAX14920_Clear_SPI_messages(void) {
+	// Disable Cell balancers and Move to sampling phase
+	MAX14920_SPI_message.spiBalanceC01_C08 = 0x00;
+	MAX14920_SPI_message.spiBalanceC09_C16 = 0x00;
+	MAX14920_SPI_message.spiEnableCellSelect = 0;
+	MAX14920_SPI_message.spiCell4bit = 0b0000;
+	MAX14920_SPI_message.spiSMPLB = 0;
+	MAX14920_SPI_message.spiDIAG = 0;
+	MAX14920_SPI_message.spiLOPW = 0;
 	
-	//PORTC &= ~(1<<PINC6); // Sampl_disable
-	//_delay_ms(50);
-	//
-	//PORTC &= ~(1<<PINC6); // Sampl_disable
-	
-	// unset to start transmission
+	// Clear output messages
+	MAX14920_SPI_output.spiCellStatusC01_C08 = 0x00;
+	MAX14920_SPI_output.spiCellStatusC09_C16 = 0x00;
+	MAX14920_SPI_output.spiChipStatus = 0b10101011;
+}
+void MAX14920_reg_write() {		
+	// unset to start transmission. Critical Section.
+	uint8_t spiStatus = 0;
+	spiStatus |= (
+		MAX14920_SPI_message.spiEnableCellSelect |
+		MAX14920_SPI_message.spiCell4bit |
+		MAX14920_SPI_message.spiSMPLB |
+		MAX14920_SPI_message.spiDIAG |
+		MAX14920_SPI_message.spiLOPW
+	);	
 	WRITE_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS, LOW);
-	//TODO: Make sure that extra time is needed
-	_delay_us(100);
-	
-	SPI_send_byte(CB1_CB8);
-	SPI_send_byte(CB9_CB16);
-	output = SPI_send_byte(ECS);
-	
+	MAX14920_SPI_output.spiCellStatusC01_C08 = SPI_send_byte(MAX14920_SPI_message.spiBalanceC01_C08);	
+	MAX14920_SPI_output.spiCellStatusC09_C16 = SPI_send_byte(MAX14920_SPI_message.spiBalanceC09_C16);	
+	MAX14920_SPI_output.spiChipStatus = SPI_send_byte(spiStatus);
 	// Set back.
 	WRITE_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS, HIGH);
-	//TODO: Make sure that extra time is needed
-	_delay_us(80);
+	// Make sure that extra time is needed
+	_delay_us(80);	
 }
 
 void MAX14920_Enable(void) {
-
+	uint8_t status = 0b00000010;
 	//PORTC |= (1<<PINC6); // Set SAMPL high to track voltage at CV	
 	// SET EN High to enable device shutdown mode. 
 	//	It resets the SPI register, make sure it's on
 	SET_BIT(MAX14920_PORT_EN, MAX14920_PIN_EN);
 	_delay_ms(1+8);	//+8for calibration
-
-	SPI_send_byte(0x00); // fIRST 8 BIT NEVER GETS SEND
-	uint8_t status = 0b00000010;
-	while((status&0b00000010)) {		
-		MAX14920_reg_write(0x00,0x00,0x00);
-				
+	// fIRST 8 BIT NEVER GETS SEND
+	MAX14920_reg_write();
+	
+	while(status&(MAX14920_SPI_output.spiChipStatus)) {
+		MAX14920_reg_write();
 		// Wait a bit before try again.
 		Toggle_LED(5, 100, 1);
-		//PORTD &= ~(1<<PIND7); // SET EN High to enable device shutdown mode. It resets the SPI register, make sure it's on
-		//_delay_ms(1);
-
 	}
 }
 
-void MAX14920_OffsetCallibration(){
+void MAX14920_OffsetCallibration(void){
 	// Set SAMPL high to start calibration
-	WRITE_BIT(MAX14920_PORT_SMPLB, MAX14920_PIN_SMPLB, HIGH);
+	WRITE_BIT(MAX14920_PORT_SAMPL, MAX14920_PIN_SAMPL, HIGH);
 	
-	MAX14920_reg_write(0x00,0x00,0b01000000);
+	//MAX14920_reg_write(0x00,0x00,0b01000000);
 	_delay_ms(8);
 	// Set SAMPL back to low to as not necessary.
-	WRITE_BIT(MAX14920_PORT_SMPLB, MAX14920_PIN_SMPLB, LOW);
+	WRITE_BIT(MAX14920_PORT_SAMPL, MAX14920_PIN_SAMPL, LOW);
 }
 
-void MAX14920_ReadData(void) {
-	PORTC &= ~(1<<PINC6); // Set SAMPL low to make ready
-	// TODO: ADC output is next thing to do
-	_delay_us(100);
-	
-	// Try get response or similar
-	int bit_test = 0;
-	
-	//ADC0_BASE
-	// TEST LINE for blicking
-	//output = 0b0001000;
-	
-	// Send dummy value
-	MAX14920_reg_write(0x00,0x00,0x00);
-	
+void MAX14920_EnableHoldPhase(bool sample) {
+	if(sample) {
+		// Move to Hold phase all cell voltages are simultaneously sampled on their 
+		//	associated capacitors.		
+		//WRITE_BIT(MAX14920_SPI_message.spiControl, MAX14920_SMPLB_bit, 1);
+		MAX14920_SPI_message.spiSMPLB = 1;
+	} else {
+		// Move to sampling phase
+		// AOUT suppose to be equal Vp/12 = For us 2.5V		
+		//WRITE_BIT(MAX14920_SPI_message.spiControl, MAX14920_SMPLB_bit, 0);
+		MAX14920_SPI_message.spiSMPLB = 0;
+	}
+	_delay_us(50);
+}
+double MAX14920_ReadData(void) {
+	// In sample phase ADC = Vp/12
+	double voltage = 0.0, Vp = 30.0, Vin = 3.3;
 	
 	//Getting ADC value
-	uint16_t ADC_v = adc_read(6);
-	
-	PORTC |= (1<<PINC6); // Set SAMPL high to track voltage at CV
+	uint16_t ADC_v = adc_read(6);	
 	SPI_send_byte((uint8_t)ADC_v);
-	
-	// AOUT settling time is 60us
-	_delay_us(60);
-	double res_voltage = ADC_v;
-	//double res_voltage = 600/(double)ADC_v;
-	int *p = DecToBin(res_voltage);
-	//for(int i = 0; i < 5;i++) if(p[i]==1) Toggle_LED(3+i,500);
-	
-	//if(res_voltage<25) Toggle_LED(6,1);
-	//else Toggle_LED(7,1);
-	////
-	//while (bit_test < 8) {
-	//if (output & 0x01) {
-	//Toggle_LED(4,2000);
-	//}
-	//else {
-	//Toggle_LED(5,500);
-	//}
-	//
-	//bit_test++;
-	//output = output >> 1;
-	//}
+	voltage = ADC_v * Vin / 1024;
+	return voltage;
 }
-//TODO! Nees a structure, to keep what balancing command has been sent already, as a global variable.
-void MAX14920_ReadCellVoltage(int cellN) {
+//Need a structure, to keep what balancing command has been sent already, as a global variable.
+double MAX14920_ReadCellVoltage(int cellN) {
 	
 	// Disable Sampler??
-	//SET_BIT(MAX14920_PORT_CS, PINC6);
+	//SET_BIT(MAX14920_PORT_CS, PINC6);	
+	if(cellN == 0) {		// Read overall voltage
+		MAX14920_EnableHoldPhase(true);
+		MAX14920_SPI_message.spiEnableCellSelect = 0;
+		MAX14920_SPI_message.spiCell4bit = 0011;
+		MAX14920_reg_write();
+		_delay_us(60);
+		
+	} else if(cellN > 0) {	// Read cell by cell
+		MAX14920_EnableHoldPhase(true);
+		MAX14920_SPI_message.spiEnableCellSelect = 1;
+		MAX14920_SPI_message.spiCell4bit = cellTable[cellN-1];
+		MAX14920_reg_write();
+		_delay_us(10);		
+	}						// No negative cell numbers
+	else return 0.0;
 	
-	if(cellN !=0) {
-		WRITE_BIT(MAX14920_PORT_CS, PINC6, LOW);
-		MAX14920_reg_write(0x00, 0x00,0x80||(cellTable[cellN-1]<<7));
-		_delay_ms(10);
-		MAX14920_ReadData();
+	MAX14920_EnableHoldPhase(false);
+	return MAX14920_ReadData();
+}
+
+void MAX14920_ReadAllCellsVoltage(void) {
+	for (int cellN = 1; cellN<=MAX14920_CELL_NUMBER-2; cellN++) {
+		CellVoltages[cellN-1] = MAX14920_ReadCellVoltage(cellN);
 	}
 }
 
-void MAX14920_ReadAllCellsVoltage() {
-	for (int cellI = 0; cellI<MAX14920_CELL_NUMBER; cellI++) {
+void MAX14920_EnableLoadBalancer(bool enable) {
+	//average voltage out of others
+	for(int i = 0; i<10;i++) {
 		
 	}
 }
