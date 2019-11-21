@@ -132,9 +132,29 @@ void MAX14920_ReadAllCellsVoltage(void) {
 	}
 }
 
+#define BALANCING_THRESHOLD	0.2
 void MAX14920_EnableLoadBalancer(bool enable) {
 	//average voltage out of others
+	double difference = 0.0;
+	
 	for(int i = 0; i<10;i++) {
-		
+		for(int j = 0; j<10;j++) {
+			if(abs(CellVoltages[i] - CellVoltages[j]) > difference) {
+				difference = abs(CellVoltages[i] - CellVoltages[j]);
+			}
+			// TODO: Recheck indexation later
+			if(difference > BALANCING_THRESHOLD && i <= 8) {
+				MAX14920_SPI_message.spiBalanceC01_C08 |= (1<<7-i);
+				difference = 0.0;
+			} else if (difference > BALANCING_THRESHOLD && i > 8) {
+				MAX14920_SPI_message.spiBalanceC09_C16 |= (1<<7-i);
+				difference = 0.0;
+			}
+			if(i < 8)
+				MAX14920_SPI_message.spiBalanceC01_C08 |= (0<<7-i);
+			} else {
+				MAX14920_SPI_message.spiBalanceC09_C16 |= (0<<7-i);
+			}
+		}		
 	}
 }

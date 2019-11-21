@@ -171,7 +171,7 @@ int main (void)
 	MAX14920_Enable();
 	MAX14920_EnableHoldPhase(false);
 		
-	// Loop to hold processor
+	// Loop forever for checks
 	double overallVoltage = 0.0;
 	while(1) {
 		Toggle_LED(7, 1000,1);
@@ -186,6 +186,8 @@ int main (void)
 			SPI_send_byte(0b1111001);
 		}
 		// Toggle balancer
-		MAX14920_EnableLoadBalancer(true);
+		// TODO: Recheck values before playing with balancer
+		// This one only for charge.
+		//MAX14920_EnableLoadBalancer(true);
 	}
 }
