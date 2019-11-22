@@ -46,7 +46,7 @@
 
 void IO_init(void);
 void Toggle_LED(int id, int delay, int times);
-int * DecToBin(double nn);
+uint8_t  DecToBin(double nn);
 
 void IO_init(void) {
 	// Initialise LEDs
@@ -137,7 +137,7 @@ void Toggle_LED(int id, int delay, int times) {
 	//Toggle_LED(4,5000);
 //}
 
-uint8_t * DecToBin(double nn) {
+uint8_t DecToBin(double nn) {
 	int a[8];
 	uint8_t byte = 0;
 	int n = (int) nn;	

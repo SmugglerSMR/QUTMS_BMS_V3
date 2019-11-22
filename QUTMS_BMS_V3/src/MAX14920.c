@@ -150,7 +150,7 @@ void MAX14920_EnableLoadBalancer(bool enable) {
 				MAX14920_SPI_message.spiBalanceC09_C16 |= (1<<7-i);
 				difference = 0.0;
 			}
-			if(i < 8)
+			if(i < 8) {
 				MAX14920_SPI_message.spiBalanceC01_C08 |= (0<<7-i);
 			} else {
 				MAX14920_SPI_message.spiBalanceC09_C16 |= (0<<7-i);
