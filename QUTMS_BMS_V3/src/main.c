@@ -51,7 +51,7 @@ uint8_t  DecToBin(double nn);
 void IO_init(void) {
 	// Initialise LEDs
 	DDRB = 0b10011010;	// CLK-output LED 5 4 MOSI-output MISO-input
-	DDRC = 0b01001001;	// SAMPL-low CS-high LED 3 
+	DDRC = 0b11001001;	// CS2-high SAMPL-low CS-high LED 3 
 	DDRD = 0b10001011;	// EN-MAX SS-high LED 7 6
 	
 	//PORTC |= (1<<PINC3); 
@@ -71,6 +71,10 @@ void IO_init(void) {
 	//PORTB |= (1<<PINB1); //SET MOSi as output
 	// TODO: COMLETE THOSE PARTS
 	//PORTC |= (1<<PINC6) | (1<<PINC3); // Disable sampler and CS.
+	
+	//Enabling CAN ship
+	// Set SS as high to disable transmission.
+	WRITE_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS, HIGH);
 }
 
 /*
