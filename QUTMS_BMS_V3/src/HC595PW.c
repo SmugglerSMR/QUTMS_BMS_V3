@@ -6,16 +6,26 @@
  */ 
 #include "HC595PW.h"
 #include "macros.h"
+#include "CD74HCT4067.h"
+#include "ADC.h"
 
-uint8_t sensor_pattern[8]={
-	0b10000001,
-	0b11000011,
-	0b11100111,
-	0b11111111,
-	0b01111110,
-	0b00111100,
-	0b00011000,
-	0b00000000,
+uint8_t sensor_pattern[OVERALL_MESSAGE_PAIRS]={
+	(I7U8 | I7U9),
+	(I6U8 | I6U9),
+	(I5U8 | I5U9),
+	(I4U8 | I4U9),
+	(I3U8 | I3U9),
+	(I2U8 | I2U9),
+	(I1U8 | I1U9),
+	(I0U8 | I0U9),
+	(I8U8 | I8U9),
+	(I9U8 | I9U9),
+	(I10U8 | I10U9),
+	(I11U8 | I11U9),
+	(I12U8 | I12U9),
+	(I13U8 | I13U9),
+	(I14U8 | I14U9),
+	(I15U8 | I15U9)
 };
 
 void HC595PW_init() {
@@ -90,10 +100,24 @@ void HC595PW_reg_write(uint8_t data){
 	 HC595Latch();	
 }
 
-void HC595PW_CD74HCT_send() {
-	for(uint8_t i=0;i<8;i++){
+void HC595PW_CD74HCT_send_read() {
+	//Getting ADC value
+	//uint16_t ADC_SensorA, ADC_SensorB, ADC_SensorC, ADC_SensorD;
+	//SPI_send_byte((uint8_t)ADC_v);
+	for(uint8_t i=0;i<OVERALL_MESSAGE_PAIRS;i++){
 		//Write the data to HC595
 		HC595PW_reg_write(sensor_pattern[i]);
-		_delay_ms(500);
+		//_delays_ns(73+19);
+		//ADC_SensorA = adc_read(9);
+		//ADC_SensorB = adc_read(8);
+		//ADC_SensorC = adc_read(2);
+		//ADC_SensorD = adc_read(3);
+		
+		SensorTemp[i] = adc_read(9);
+		SensorTemp[16+i] = adc_read(8);
+		SensorTemp[32+i] = adc_read(2);
+		SensorTemp[48+i] = adc_read(3);
+		_delay_ms(10); //TODO: Get the smallest value
+		
 	}
 }

@@ -24,4 +24,6 @@
 #define HC595PW_PORT_SH	PORTB
 #define HC595PW_PIN_SH	PINB7
 
+static volatile double SensorTemp[64] = {0.0};
+	
 #endif /* 74HC595PW_H_ */
