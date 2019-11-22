@@ -208,6 +208,12 @@
     <Folder Include="src\config\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\HC595PW.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\HC595PW.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\ADC.c">
       <SubType>compile</SubType>
     </Compile>
