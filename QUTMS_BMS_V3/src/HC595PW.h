@@ -9,6 +9,8 @@
 #ifndef HC595PW_H_
 #define HC595PW_H_
 
+#define F_CPU 16000000UL
+
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -25,5 +27,10 @@
 #define HC595PW_PIN_SH	PINB7
 
 static volatile double SensorTemp[64] = {0.0};
-	
+
+void HC595PW_init(void);
+void HC595Pulse(void);
+void HC595Latch(void);
+void HC595PW_reg_write(uint8_t data);
+void HC595PW_CD74HCT_send_read(void);
 #endif /* 74HC595PW_H_ */

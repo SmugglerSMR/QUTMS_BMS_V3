@@ -28,13 +28,13 @@ uint8_t sensor_pattern[OVERALL_MESSAGE_PAIRS]={
 	(I15U8 | I15U9)
 };
 
-void HC595PW_init() {
+void HC595PW_init(void) {
 	////Make the Data(DS), Shift clock (SH_CP), Store Clock (ST_CP) lines output
 	//HC595_DDR|=((1<<HC595_SH_CP_POS)|(1<<HC595_ST_CP_POS)|(1<<HC595_DS_POS));
 }
 
 //Sends a clock pulse on SH_CP || SCK line
-void HC595Pulse() {
+void HC595Pulse(void) {
 	//Pulse the Shift Clock
 	//HC595_PORT|=(1<<HC595_SH_CP_POS);//HIGH
 	//WRITE_BIT(HC595PW_PORT_SH, HC595PW_PIN_SH, HIGH);
@@ -100,7 +100,7 @@ void HC595PW_reg_write(uint8_t data){
 	 HC595Latch();	
 }
 
-void HC595PW_CD74HCT_send_read() {
+void HC595PW_CD74HCT_send_read(void) {
 	//Getting ADC value
 	//uint16_t ADC_SensorA, ADC_SensorB, ADC_SensorC, ADC_SensorD;
 	//SPI_send_byte((uint8_t)ADC_v);

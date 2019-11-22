@@ -93,8 +93,8 @@ void MAX14920_EnableHoldPhase(bool sample) {
 	_delay_us(50);
 }
 double MAX14920_ReadData(void) {
-	// In sample phase ADC = Vp/12
-	double voltage = 0.0, Vp = 30.0, Vin = 3.3;
+	// In sample phase ADC = Vp/12, Vp = 30.0, 
+	double voltage = 0.0, Vin = 3.3;
 	
 	//Getting ADC value
 	uint16_t ADC_v = adc_read(6);	
@@ -145,16 +145,16 @@ void MAX14920_EnableLoadBalancer(bool enable) {
 			}
 			// TODO: Recheck indexation later
 			if(difference > BALANCING_THRESHOLD && i <= 8) {
-				MAX14920_SPI_message.spiBalanceC01_C08 |= (1<<7-i);
+				MAX14920_SPI_message.spiBalanceC01_C08 |= (1<<(7-i));
 				difference = 0.0;
 			} else if (difference > BALANCING_THRESHOLD && i > 8) {
-				MAX14920_SPI_message.spiBalanceC09_C16 |= (1<<7-i);
+				MAX14920_SPI_message.spiBalanceC09_C16 |= (1<<(7-i));
 				difference = 0.0;
 			}
 			if(i < 8) {
-				MAX14920_SPI_message.spiBalanceC01_C08 |= (0<<7-i);
+				MAX14920_SPI_message.spiBalanceC01_C08 |= ~(1<<(7-i));
 			} else {
-				MAX14920_SPI_message.spiBalanceC09_C16 |= (0<<7-i);
+				MAX14920_SPI_message.spiBalanceC09_C16 |= ~(1<<(7-i));
 			}
 		}		
 	}
