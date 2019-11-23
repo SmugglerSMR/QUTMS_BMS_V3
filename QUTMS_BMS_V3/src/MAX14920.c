@@ -16,6 +16,11 @@ static const int cellTable[MAX14920_CELL_NUMBER] = {
 	0b0001, 0b1001, 0b0101, 0b1101	// Cells 9,10,11,12
 };
 
+void MAX14920_Init_Registers(void) {
+	//DDRB |= ((1<<7)|(1<<2)|~(1<<1));
+	//DDRC |= (()|());
+	//DDRD |= (()|());
+}
 void MAX14920_Clear_SPI_messages(void) {
 	// Disable Cell balancers and Move to sampling phase
 	MAX14920_SPI_message.spiBalanceC01_C08 = 0x00;

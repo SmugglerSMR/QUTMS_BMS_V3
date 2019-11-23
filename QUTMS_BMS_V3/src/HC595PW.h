@@ -28,7 +28,7 @@
 
 static volatile double SensorTemp[64] = {0.0};
 
-void HC595PW_init(void);
+void HC595PW_Init_Registers(void);
 void HC595Pulse(void);
 void HC595Latch(void);
 void HC595PW_reg_write(uint8_t data);

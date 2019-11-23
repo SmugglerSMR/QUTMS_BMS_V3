@@ -28,7 +28,7 @@ uint8_t sensor_pattern[OVERALL_MESSAGE_PAIRS]={
 	(I15U8 | I15U9)
 };
 
-void HC595PW_init(void) {
+void HC595PW_Init_Registers(void) {
 	////Make the Data(DS), Shift clock (SH_CP), Store Clock (ST_CP) lines output
 	//HC595_DDR|=((1<<HC595_SH_CP_POS)|(1<<HC595_ST_CP_POS)|(1<<HC595_DS_POS));
 }

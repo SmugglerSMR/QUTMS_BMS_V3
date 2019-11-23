@@ -30,7 +30,8 @@
 #define MAX14920_CELL_NUMBER	12
 
 static volatile double CellVoltages[10] = {0.0};
-	
+
+void MAX14920_Init_Registers(void);	
 void MAX14920_Clear_SPI_messages(void);
 void MAX14920_reg_write(void);
 void MAX14920_Enable(void);
