@@ -223,6 +223,12 @@
     <Compile Include="src\MAX14920.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\MCP2517FD.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\MCP2517FD.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\SPI.c">
       <SubType>compile</SubType>
     </Compile>
