@@ -41,17 +41,17 @@
 #include "SPI.h"
 #include "ADC.h"
 #include "MAX14920.h"
-
+#include "HC595PW.h"
 
 
 void IO_init(void);
 void Toggle_LED(int id, int delay, int times);
-uint8_t  DecToBin(double nn);
+uint8_t DecToBin(double nn);
 
 void IO_init(void) {
 	// Initialise LEDs
-	DDRB = 0b10011010;	// CLK-output LED 5 4 MOSI-output MISO-input
-	DDRC = 0b01001001;	// SAMPL-low CS-high LED 3 
+	DDRB = 0b11011110;	// CLK-output MR-output LED-5 LED-4 ST_CLK-output MOSI-output MISO-input
+	DDRC = 0b01001011;	// SAMPL-low CS-high Data-input LED-3 
 	DDRD = 0b10001011;	// EN-MAX SS-high LED 7 6
 	
 	//PORTC |= (1<<PINC3); 
@@ -71,6 +71,12 @@ void IO_init(void) {
 	//PORTB |= (1<<PINB1); //SET MOSi as output
 	// TODO: COMLETE THOSE PARTS
 	//PORTC |= (1<<PINC6) | (1<<PINC3); // Disable sampler and CS.
+	
+	// 74HC595PW initialize	
+	// Master Reset as high. Drawing low will reset register
+	WRITE_BIT(HC595PW_PORT_MR, HC595PW_PIN_MR, HIGH);
+	// Data pin set to low
+	WRITE_BIT(HC595PW_PORT_DC, HC595PW_PIN_DC, LOW);
 }
 
 /*

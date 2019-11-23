@@ -42,7 +42,7 @@ double MAX14920_ReadCellVoltage(int cellN);
 void MAX14920_ReadAllCellsVoltage(void);
 void MAX14920_EnableLoadBalancer(bool enable);
 
-extern uint8_t  DecToBin(double nn);
+extern uint8_t DecToBin(double nn);
 extern void Toggle_LED(int id, int delay, int times);
 
 #endif /* MAX14920_H_ */

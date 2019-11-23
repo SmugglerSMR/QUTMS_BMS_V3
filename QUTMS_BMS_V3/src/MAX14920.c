@@ -9,6 +9,7 @@
 #include "SPI.h"
 #include "ADC.h"
 
+
 static const int cellTable[MAX14920_CELL_NUMBER] = {
 	0b0000, 0b1000, 0b0100, 0b1100,	// Cells 1, 2, 3, 4
 	0b0010, 0b1010, 0b0110, 0b1110,	// Cells 5, 6, 7, 8
@@ -92,7 +93,7 @@ void MAX14920_EnableHoldPhase(bool sample) {
 	_delay_us(50);
 }
 double MAX14920_ReadData(void) {
-	// In sample phase ADC = Vp/12 Vp = 30.0,
+	// In sample phase ADC = Vp/12, Vp = 30.0, 
 	double voltage = 0.0, Vin = 3.3;
 	
 	//Getting ADC value
@@ -151,9 +152,9 @@ void MAX14920_EnableLoadBalancer(bool enable) {
 				difference = 0.0;
 			}
 			if(i < 8) {
-				MAX14920_SPI_message.spiBalanceC01_C08 |= (0<<(7-i));
+				MAX14920_SPI_message.spiBalanceC01_C08 |= ~(1<<(7-i));
 			} else {
-				MAX14920_SPI_message.spiBalanceC09_C16 |= (0<<(7-i));
+				MAX14920_SPI_message.spiBalanceC09_C16 |= ~(1<<(7-i));
 			}
 		}		
 	}
