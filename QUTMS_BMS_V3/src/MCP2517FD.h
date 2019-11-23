@@ -9,6 +9,11 @@
 #ifndef MCP2517FD_H_
 #define MCP2517FD_H_
 
+#define F_CPU 16000000UL
+
+#include <avr/io.h>
+#include <util/delay.h>
+
 #define MCP2517FD_PORT_CS		PORTC
 #define MCP2517FD_PIN_CS		PINC7		//***
 
@@ -19,4 +24,6 @@
 #define MCP2517FD_WRITE_CRC   0x0A
 #define MCP2517FD_WRITE_SAFE  0x0C
 
+void MCP2517FD_Init_Registers(void);
+void MCP2517FD_reg_write(uint8_t reg_address, uint8_t reg_value);
 #endif /* MCP2517FD_H_ */

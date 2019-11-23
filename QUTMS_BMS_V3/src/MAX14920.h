@@ -30,7 +30,8 @@
 #define MAX14920_CELL_NUMBER	12
 
 static volatile double CellVoltages[10] = {0.0};
-	
+
+void MAX14920_Init_Registers(void);	
 void MAX14920_Clear_SPI_messages(void);
 void MAX14920_reg_write(void);
 void MAX14920_Enable(void);
@@ -42,7 +43,7 @@ double MAX14920_ReadCellVoltage(int cellN);
 void MAX14920_ReadAllCellsVoltage(void);
 void MAX14920_EnableLoadBalancer(bool enable);
 
-extern uint8_t  DecToBin(double nn);
+extern uint8_t DecToBin(double nn);
 extern void Toggle_LED(int id, int delay, int times);
 
 #endif /* MAX14920_H_ */
