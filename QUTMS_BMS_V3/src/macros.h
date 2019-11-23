@@ -4,6 +4,7 @@
  *
  *	B.Talbot, September 2015
  *	L.Buckingham, September 2017
+ *  M.Sadykov, November 2019
  *  Queensland University of Technology
  */
 #ifndef MACROS_H_
@@ -32,5 +33,11 @@
  */
 #define ABS(x) (((x) >= 0) ? (x) : -(x))
 #define SIGN(x) (((x) > 0) - ((x) < 0))
+
+/*
+ *	Define definitions as in docs.
+ */
+#define HIGH 1
+#define LOW 0
 
 #endif /* MACROS_H_ */

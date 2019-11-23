@@ -35,21 +35,18 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+#include <stdbool.h>
 
 #include "macros.h"
 #include "SPI.h"
 #include "ADC.h"
 #include "MAX14920.h"
 
-static const int cellTable[] = {
-	0b0000, 0b1000, 0b0100, 0b1100,
-	0b0010, 0b1010, 0b0110, 0b1110,
-	0b0001, 0b1001, 0b0101, 0b1101
-};
+
 
 void IO_init(void);
 void Toggle_LED(int id, int delay, int times);
-int * DecToBin(double nn);
+uint8_t  DecToBin(double nn);
 
 void IO_init(void) {
 	// Initialise LEDs
@@ -59,9 +56,18 @@ void IO_init(void) {
 	
 	//PORTC |= (1<<PINC3); 
 	//PORTC |= (1<<PINC6); 
-	SET_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS); // Set SS as output high
-	//SET_BIT(PORTC, PINC6); // Set SAMPL high to track voltage at CV
-		
+	
+	// Set SS as high to disable transmission.
+	WRITE_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS, HIGH);
+	// TODO: Try make MISO and MOSO low
+	
+	// Allow sampling through SPI messages.
+	WRITE_BIT(MAX14920_PORT_SAMPL, MAX14920_PIN_SAMPL, HIGH);
+	
+	// Shutdown and reset SPI.
+	WRITE_BIT(MAX14920_PORT_EN, MAX14920_PIN_EN, LOW);
+	
+	// TODO: Check LDO voltage. It should nit be higher than 5.25V
 	//PORTB |= (1<<PINB1); //SET MOSi as output
 	// TODO: COMLETE THOSE PARTS
 	//PORTC |= (1<<PINC6) | (1<<PINC3); // Disable sampler and CS.
@@ -77,39 +83,42 @@ void Toggle_LED(int id, int delay, int times) {
 		switch(id) {		
 			case 5:		// red
 				PORTB ^= 0b00010000;
-				for (int i = 0; i < delay; i++)	{
+				for (int i = 0; i < delay/2; i++)	{
 					_delay_ms(1);
 				}
 				PORTB ^= 0b00010000;
 				break;			
 			case 4:		// blue
 				PORTB ^= 0b00001000;
-				for (int i = 0; i < delay; i++)	{
+				for (int i = 0; i < delay/2; i++)	{
 					_delay_ms(1);
 				}
 				PORTB ^= 0b00001000;
 				break;
 			case 3:		// blue
 				PORTC ^= 0b00000001;
-				for (int i = 0; i < delay; i++)	{
+				for (int i = 0; i < delay/2; i++)	{
 					_delay_ms(1);
 				}
 				PORTC ^= 0b00000001;
 				break;		
 			case 7:		// white
 				PORTD ^= 0b00000010;
-				for (int i = 0; i < delay; i++)	{
+				for (int i = 0; i < delay/2; i++)	{
 					_delay_ms(1);
 				}
 				PORTD ^= 0b00000010;
 				break;
 			case 6:		// red
 				PORTD ^= 0b00000001;
-				for (int i = 0; i < delay; i++)	{
+				for (int i = 0; i < delay/2; i++)	{
 					_delay_ms(1);
 				}
 				PORTD ^= 0b00000001;
 				break;
+		}
+		for (int i = 0; i < delay/2; i++)	{
+			_delay_ms(1);
 		}
 	}
 }
@@ -128,60 +137,57 @@ void Toggle_LED(int id, int delay, int times) {
 	//Toggle_LED(4,5000);
 //}
 
-int * DecToBin(double nn) {
-	static int a[5];
+uint8_t DecToBin(double nn) {
+	int a[8];
+	uint8_t byte = 0;
 	int n = (int) nn;	
 	for(int i=0;n>0;i++){
 		a[i]=n%2;
 		n=n/2;
 	}
-	return a;
+	for(int i=0;n>8;i++){
+		if(a[i] == 1) {
+			byte |= 1;
+			byte <<=1;
+		} else {
+			byte |= 0;
+			byte <<=1;
+		}
+	}
+	return byte;
 }
 
 int main (void)
 {
 	/* Insert system clock initialization code here (sysclk_init()). */
+	// Initialize ATmega64M1 micro controller
 	//board_init();
 	IO_init();
 	SPI_init();
 	ADC_init();
+	
+	// Initialize MAX14920 micro controller
+	MAX14920_Clear_SPI_messages();
 	MAX14920_Enable();
-	
-	/* Insert application code here, after the board has been initialized. */
-	//_delay_ms(3000);
-	
-	// Probing CEL1
-	Toggle_LED(7, 150, 4);
-	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
-	_delay_ms(50); // Wait for voltage to be shifted to GndRef
-	MAX14920_reg_write(0b00000000,0b00000000,0b10000000|(cellTable[0]<<7));
-	MAX14920_ReadData();
-	
-	// Testing Diag
-	MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
-	Toggle_LED(7, 150, 4);
-	_delay_ms(500);
-	MAX14920_reg_write(0b00000000,0b00000000,0b00000110);
-	_delay_ms(500); // Wait for voltage to be shifted to GndRef
-	MAX14920_reg_write(0b00000000,0b00000000,0b00000000);
-	MAX14920_ReadData();
-	
-	
-	// Probing cell2
-	//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-	//_delay_ms(500);
-	//MAX14920_reg_write(0b00000000,0b00000000,0b11000100);	
-	
-	// Loop to hold processor
+	MAX14920_EnableHoldPhase(false);
+		
+	// Loop forever for checks
+	double overallVoltage = 0.0;
 	while(1) {
-		Toggle_LED(7, 1000,2);
-		MAX14920_reg_write(0b00000000,0b00000000,0b00000100);
-		//Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);Toggle_LED(7, 150);
-		_delay_ms(500);
-		MAX14920_reg_write(0b00000000,0b00000000,0b00000110);
-		_delay_ms(500); // Wait for voltage to be shifted to GndRef
-		MAX14920_reg_write(0b00000000,0b00000000,0b00000000);
-		MAX14920_ReadData();
+		Toggle_LED(7, 1000,1);
+		MAX14920_ReadAllCellsVoltage();
+		_delay_ms(50);
+		overallVoltage = MAX14920_ReadCellVoltage(0);
+		SPI_send_byte(DecToBin(overallVoltage));
+		
+		// Report fault on any of the cells
+		if(MAX14920_SPI_output.spiCellStatusC01_C08 ||
+		   MAX14920_SPI_output.spiCellStatusC09_C16) {
+			SPI_send_byte(0b1111001);
+		}
+		// Toggle balancer
+		// TODO: Recheck values before playing with balancer
+		// This one only for charge.
+		//MAX14920_EnableLoadBalancer(true);
 	}
 }

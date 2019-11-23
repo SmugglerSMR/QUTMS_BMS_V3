@@ -13,15 +13,36 @@
 
 #include <avr/io.h>
 #include <util/delay.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 #define MAX14920_PORT_CS	PORTC
 #define MAX14920_PIN_CS		PINC3		//***
 
-void MAX14920_reg_write(uint8_t CB1_CB8, uint8_t CB9_CB16, uint8_t ECS);
-void MAX14920_Enable(void);
-void MAX14920_ReadData(void);
+#define MAX14920_PORT_EN	PORTD
+#define MAX14920_PIN_EN		PIND7		//***
 
-extern int * DecToBin(double nn);
+#define MAX14920_PORT_SAMPL	PORTC
+#define MAX14920_PIN_SAMPL	PINC6		//***
+
+#define MAX14920_SMPLB_bit	3
+
+#define MAX14920_CELL_NUMBER	12
+
+static volatile double CellVoltages[10] = {0.0};
+	
+void MAX14920_Clear_SPI_messages(void);
+void MAX14920_reg_write(void);
+void MAX14920_Enable(void);
+void MAX14920_OffsetCallibration(void);
+void MAX14920_EnableHoldPhase(bool enable);
+
+double MAX14920_ReadData(void);
+double MAX14920_ReadCellVoltage(int cellN);
+void MAX14920_ReadAllCellsVoltage(void);
+void MAX14920_EnableLoadBalancer(bool enable);
+
+extern uint8_t  DecToBin(double nn);
 extern void Toggle_LED(int id, int delay, int times);
 
 #endif /* MAX14920_H_ */
