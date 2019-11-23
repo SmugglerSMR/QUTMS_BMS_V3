@@ -8,7 +8,7 @@
 #include "macros.h"
 #include "CD74HCT4067.h"
 #include "ADC.h"
-
+#include "SPI.h"
 uint8_t sensor_pattern[OVERALL_MESSAGE_PAIRS]={
 	(I7U8 | I7U9),
 	(I6U8 | I6U9),
@@ -33,6 +33,7 @@ void HC595PW_Init_Registers(void) {
 	DDRB |= ((1<<HC595PW_PIN_SH)|(1<<HC595PW_PIN_ST)|(1<<HC595PW_PIN_MR));	
 	DDRC |= (1<<HC595PW_PIN_DS);
 	
+	DDRD |= (~(1<<PIND5)|~(1<<PIND6));
 	// Reset register Disable Reset
 	WRITE_BIT(HC595PW_PORT_MR, HC595PW_PIN_MR, LOW);
 	_delay_us(55);
@@ -109,23 +110,58 @@ void HC595PW_reg_write(uint8_t data){
 	 HC595Latch();	
 }
 
+#define RES_VALUE 10000
+#define THERMISTORNOMINAL 10000
+// temp. for nominal resistance (almost always 25 C)
+#define TEMPERATURENOMINAL 25
+// The beta coefficient of the thermistor (usually 3000-4000)
+#define BCOEFFICIENT 3950
 void HC595PW_CD74HCT_send_read(void) {
 	//Getting ADC value
 	//uint16_t ADC_SensorA, ADC_SensorB, ADC_SensorC, ADC_SensorD;
 	//SPI_send_byte((uint8_t)ADC_v);
-	for(uint8_t i=0;i<OVERALL_MESSAGE_PAIRS;i++){
+	
+	for(int i=0;i<OVERALL_MESSAGE_PAIRS;i++){
 		//Write the data to HC595
 		HC595PW_reg_write(sensor_pattern[i]);
-		//_delays_ns(73+19);
+		SPI_send_byte(sensor_pattern[i]);
+		_delay_us(73+19);
 		//ADC_SensorA = adc_read(9);
 		//ADC_SensorB = adc_read(8);
 		//ADC_SensorC = adc_read(2);
 		//ADC_SensorD = adc_read(3);
+		//Value of the resitance for each ADC
+		float res_v1 = RES_VALUE / (1023 / (adc_read(9) >> 2)) - 1;
+		float res_v2 = RES_VALUE / (1023 / (adc_read(8) >> 2)) - 1;
+		float res_v3 = RES_VALUE / (1023 / (adc_read(2) >> 2)) - 1;
+		float res_v4 = RES_VALUE / (1023 / (adc_read(3) >> 2)) - 1;
 		
-		SensorTemp[i] = adc_read(9);
-		SensorTemp[16+i] = adc_read(8);
-		SensorTemp[32+i] = adc_read(2);
-		SensorTemp[48+i] = adc_read(3);
+		//SensorTemp[i] = adc_read(9);
+		//SensorTemp[i] = 1;
+		float steinhart1, steinhart2, steinhart3, steinhart4;
+		steinhart1 = log(res_v1 / THERMISTORNOMINAL)/BCOEFFICIENT;
+		steinhart2 = log(res_v2 / THERMISTORNOMINAL)/BCOEFFICIENT;
+		steinhart3 = log(res_v3 / THERMISTORNOMINAL)/BCOEFFICIENT;
+		steinhart4 = log(res_v4 / THERMISTORNOMINAL)/BCOEFFICIENT;
+		
+		steinhart1 += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
+		steinhart2 += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
+		steinhart3 += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
+		steinhart4 += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
+		
+		steinhart1 = (1.0 / steinhart1)-273.12;        // Invert / convert to C
+		steinhart2 = (1.0 / steinhart2)-273.12;        // Invert / convert to C
+		steinhart3 = (1.0 / steinhart3)-273.12;        // Invert / convert to C
+		steinhart4 = (1.0 / steinhart4)-273.12;        // Invert / convert to C
+		  
+		// (1023 / reading)  - 1;
+		SPI_send_byte(steinhart1);
+		SPI_send_byte(steinhart2);
+		SPI_send_byte(steinhart3);
+		SPI_send_byte(adc_read(3) >> 2);
+		//SensorTemp[16+i] = 0b00001111;
+		//SensorTemp[32+i] = adc_read(2) >> 2;
+		//SensorTemp[48+i] = adc_read(3) >> 2;
 		_delay_ms(10); //TODO: Get the smallest value
 		
 	}

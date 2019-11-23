@@ -26,7 +26,7 @@
 #define HC595PW_PORT_SH	PORTB
 #define HC595PW_PIN_SH	PINB7
 
-static volatile double SensorTemp[64] = {0.0};
+static uint8_t SensorTemp[64] = {0};
 
 void HC595PW_Init_Registers(void);
 void HC595Pulse(void);

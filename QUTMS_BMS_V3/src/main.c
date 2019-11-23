@@ -163,7 +163,9 @@ int main (void)
 		MAX14920_ReadAllCellsVoltage();
 		_delay_ms(50);
 		overallVoltage = MAX14920_ReadCellVoltage(0);
-		SPI_send_byte(DecToBin(overallVoltage));
+		for(int i=0; i<10; i++)
+			SPI_send_byte((CellVoltages[i]));
+		SPI_send_byte((overallVoltage));
 		
 		// Report fault on any of the cells
 		if(MAX14920_SPI_output.spiCellStatusC01_C08 ||
@@ -178,5 +180,7 @@ int main (void)
 		
 		// Start Temperature readings
 		HC595PW_CD74HCT_send_read();
+		//for(int i=0; i<64;i++)
+			//SPI_send_byte(adc_read(2) >> 2);
 	}
 }

@@ -53,10 +53,10 @@ void MAX14920_reg_write() {
 	// unset to start transmission. Critical Section.
 	uint8_t spiStatus = 0;
 	spiStatus |= (
-		MAX14920_SPI_message.spiEnableCellSelect |
-		MAX14920_SPI_message.spiCell4bit |
-		MAX14920_SPI_message.spiSMPLB |
-		MAX14920_SPI_message.spiDIAG |
+		MAX14920_SPI_message.spiEnableCellSelect<<7 |
+		MAX14920_SPI_message.spiCell4bit<<3 |
+		MAX14920_SPI_message.spiSMPLB<<2 |
+		MAX14920_SPI_message.spiDIAG<<1 |
 		MAX14920_SPI_message.spiLOPW
 	);	
 	WRITE_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS, LOW);
