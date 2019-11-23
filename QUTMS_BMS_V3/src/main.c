@@ -49,26 +49,11 @@ void Toggle_LED(int id, int delay, int times);
 uint8_t DecToBin(double nn);
 
 void IO_init(void) {
-	// Initialise LEDs
-//<<<<<<< HEAD
-	//DDRB = 0b10011010;	// CLK-output LED 5 4 MOSI-output MISO-input
-	//DDRC = 0b11001001;	// CS2-high SAMPL-low CS-high LED 3 
-	//DDRD = 0b10001011;	// EN-MAX SS-high LED 7 6
-//=======
+	// Initialize LEDs
 	DDRB = 0b00011000;	// LED-5 LED-4
 	DDRC = 0b00000001;	// LED-3 
-//>>>>>>> master
 	DDRD = 0b00000011;	// LED 7 6
 	
-	//PORTC |= (1<<PINC3); 
-	//PORTC |= (1<<PINC6); 
-	
-	
-	
-	// TODO: Check LDO voltage. It should nit be higher than 5.25V
-	//PORTB |= (1<<PINB1); //SET MOSi as output
-	// TODO: COMLETE THOSE PARTS
-	//PORTC |= (1<<PINC6) | (1<<PINC3); // Disable sampler and CS.	
 }
 
 /*
@@ -188,7 +173,11 @@ int main (void)
 		}
 		// Toggle balancer
 		// TODO: Recheck values before playing with balancer
+		// TODO: Make sure that values for threshold is accurate first
 		// This one only for charge.
 		//MAX14920_EnableLoadBalancer(true);
+		
+		// Start Temperature readings
+		HC595PW_CD74HCT_send_read();
 	}
 }
