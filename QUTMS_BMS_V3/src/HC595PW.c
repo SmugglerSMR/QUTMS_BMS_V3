@@ -30,7 +30,16 @@ uint8_t sensor_pattern[OVERALL_MESSAGE_PAIRS]={
 
 void HC595PW_Init_Registers(void) {
 	////Make the Data(DS), Shift clock (SH_CP), Store Clock (ST_CP) lines output
-	//HC595_DDR|=((1<<HC595_SH_CP_POS)|(1<<HC595_ST_CP_POS)|(1<<HC595_DS_POS));
+	DDRB |= ((1<<HC595PW_PIN_SH)|(1<<HC595PW_PIN_ST)|(1<<HC595PW_PIN_MR));	
+	DDRC |= (1<<HC595PW_PIN_DS);
+	
+	// Reset register Disable Reset
+	WRITE_BIT(HC595PW_PORT_MR, HC595PW_PIN_MR, LOW);
+	_delay_us(55);
+	WRITE_BIT(HC595PW_PORT_MR, HC595PW_PIN_MR, HIGH);
+	
+	// TODO: Test if DS must be low
+	WRITE_BIT(HC595PW_PORT_DS, HC595PW_PIN_DS, LOW);
 }
 
 //Sends a clock pulse on SH_CP || SCK line
@@ -85,10 +94,10 @@ void HC595PW_reg_write(uint8_t data){
 		 //Value of MSB
 		 if(data & 0b10000000) {
 			 //MSB is 1 so output high
-			 WRITE_BIT(HC595PW_PORT_DC, HC595PW_PIN_DC, HIGH);
+			 WRITE_BIT(HC595PW_PORT_DS, HC595PW_PIN_DS, HIGH);
 		 } else {
 			 //MSB is 0 so output high
-			 WRITE_BIT(HC595PW_PORT_DC, HC595PW_PIN_DC, LOW);
+			 WRITE_BIT(HC595PW_PORT_DS, HC595PW_PIN_DS, LOW);
 		 }
 
 		 HC595Pulse();  //Pulse the Clock line

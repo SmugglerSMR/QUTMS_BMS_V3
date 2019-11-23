@@ -42,7 +42,7 @@
 #include "ADC.h"
 #include "MAX14920.h"
 #include "HC595PW.h"
-
+#include "MCP2517FD.h"
 
 void IO_init(void);
 void Toggle_LED(int id, int delay, int times);
@@ -55,8 +55,8 @@ void IO_init(void) {
 	//DDRC = 0b11001001;	// CS2-high SAMPL-low CS-high LED 3 
 	//DDRD = 0b10001011;	// EN-MAX SS-high LED 7 6
 //=======
-	DDRB = 0b01011100;	// MR-output LED-5 LED-4 ST_CLK-output
-	DDRC = 0b00000011;	// Data-input LED-3 
+	DDRB = 0b00011000;	// LED-5 LED-4
+	DDRC = 0b00000001;	// LED-3 
 //>>>>>>> master
 	DDRD = 0b00000011;	// LED 7 6
 	
@@ -68,17 +68,7 @@ void IO_init(void) {
 	// TODO: Check LDO voltage. It should nit be higher than 5.25V
 	//PORTB |= (1<<PINB1); //SET MOSi as output
 	// TODO: COMLETE THOSE PARTS
-	//PORTC |= (1<<PINC6) | (1<<PINC3); // Disable sampler and CS.
-
-	//Enabling CAN ship
-	// Set SS as high to disable transmission.
-	WRITE_BIT(MCP2517FD_PORT_CS, MCP2517FD_PIN_CS, HIGH);
-
-	// 74HC595PW initialize	
-	// Master Reset as high. Drawing low will reset register
-	WRITE_BIT(HC595PW_PORT_MR, HC595PW_PIN_MR, HIGH);
-	// Data pin set to low
-	WRITE_BIT(HC595PW_PORT_DC, HC595PW_PIN_DC, LOW);
+	//PORTC |= (1<<PINC6) | (1<<PINC3); // Disable sampler and CS.	
 }
 
 /*
@@ -174,6 +164,8 @@ int main (void)
 	SPI_init();
 	ADC_init();
 	MAX14920_Init_Registers();
+	HC595PW_Init_Registers();
+	MCP2517FD_Init_Registers();
 	
 	// Initialize MAX14920 micro controller
 	MAX14920_Clear_SPI_messages();

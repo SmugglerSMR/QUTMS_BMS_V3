@@ -14,6 +14,10 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
+#define MCP2517FD_PIN_SCK	PINB7
+#define MCP2517FD_PIN_MOSI	PINB1
+#define MCP2517FD_PIN_MISO	PINB0
+
 #define MCP2517FD_PORT_CS		PORTC
 #define MCP2517FD_PIN_CS		PINC7		//***
 
