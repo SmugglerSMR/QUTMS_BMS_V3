@@ -17,9 +17,22 @@ static const int cellTable[MAX14920_CELL_NUMBER] = {
 };
 
 void MAX14920_Init_Registers(void) {
-	//DDRB |= ((1<<7)|(1<<2)|~(1<<1));
-	//DDRC |= (()|());
-	//DDRD |= (()|());
+	DDRB |= ((1<<MAX14920_PIN_SCK)|
+			(1<<MAX14920_PIN_MOSI)|
+			~(1<<MAX14920_PIN_MISO)); // MISO as input
+	DDRC |= ((1<<MAX14920_PIN_SAMPL)|
+			 (1<<MAX14920_PIN_CS));
+	DDRD |= ((1<<MAX14920_PIN_EN));
+	
+	// Set SS as high to disable transmission.
+	WRITE_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS, HIGH);
+	// TODO: Try make MISO and MOSO low
+	
+	// Allow sampling through SPI messages.
+	WRITE_BIT(MAX14920_PORT_SAMPL, MAX14920_PIN_SAMPL, HIGH);
+	
+	// Shutdown and reset SPI.
+	WRITE_BIT(MAX14920_PORT_EN, MAX14920_PIN_EN, LOW);
 }
 void MAX14920_Clear_SPI_messages(void) {
 	// Disable Cell balancers and Move to sampling phase

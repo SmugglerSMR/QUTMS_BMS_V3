@@ -53,24 +53,17 @@ void IO_init(void) {
 //<<<<<<< HEAD
 	//DDRB = 0b10011010;	// CLK-output LED 5 4 MOSI-output MISO-input
 	//DDRC = 0b11001001;	// CS2-high SAMPL-low CS-high LED 3 
+	//DDRD = 0b10001011;	// EN-MAX SS-high LED 7 6
 //=======
-	DDRB = 0b11011110;	// CLK-output MR-output LED-5 LED-4 ST_CLK-output MOSI-output MISO-input
-	DDRC = 0b01001011;	// SAMPL-low CS-high Data-input LED-3 
+	DDRB = 0b01011100;	// MR-output LED-5 LED-4 ST_CLK-output
+	DDRC = 0b00000011;	// Data-input LED-3 
 //>>>>>>> master
-	DDRD = 0b10001011;	// EN-MAX SS-high LED 7 6
+	DDRD = 0b00000011;	// LED 7 6
 	
 	//PORTC |= (1<<PINC3); 
 	//PORTC |= (1<<PINC6); 
 	
-	// Set SS as high to disable transmission.
-	WRITE_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS, HIGH);
-	// TODO: Try make MISO and MOSO low
 	
-	// Allow sampling through SPI messages.
-	WRITE_BIT(MAX14920_PORT_SAMPL, MAX14920_PIN_SAMPL, HIGH);
-	
-	// Shutdown and reset SPI.
-	WRITE_BIT(MAX14920_PORT_EN, MAX14920_PIN_EN, LOW);
 	
 	// TODO: Check LDO voltage. It should nit be higher than 5.25V
 	//PORTB |= (1<<PINB1); //SET MOSi as output
@@ -79,7 +72,7 @@ void IO_init(void) {
 
 	//Enabling CAN ship
 	// Set SS as high to disable transmission.
-	WRITE_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS, HIGH);
+	WRITE_BIT(MCP2517FD_PORT_CS, MCP2517FD_PIN_CS, HIGH);
 
 	// 74HC595PW initialize	
 	// Master Reset as high. Drawing low will reset register
@@ -180,6 +173,7 @@ int main (void)
 	IO_init();
 	SPI_init();
 	ADC_init();
+	MAX14920_Init_Registers();
 	
 	// Initialize MAX14920 micro controller
 	MAX14920_Clear_SPI_messages();

@@ -16,6 +16,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#define MAX14920_PIN_SCK	PINB7
+#define MAX14920_PIN_MOSI	PINB1
+#define MAX14920_PIN_MISO	PINB0
+
 #define MAX14920_PORT_CS	PORTC
 #define MAX14920_PIN_CS		PINC3		//***
 
