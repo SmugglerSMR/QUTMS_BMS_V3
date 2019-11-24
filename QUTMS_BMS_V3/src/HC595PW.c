@@ -9,24 +9,44 @@
 #include "CD74HCT4067.h"
 #include "ADC.h"
 #include "SPI.h"
+//uint8_t sensor_pattern[OVERALL_MESSAGE_PAIRS]={
+	//(I7U8 | I7U9),
+	//(I6U8 | I6U9),
+	//(I5U8 | I5U9),
+	//(I4U8 | I4U9),
+	//(I3U8 | I3U9),
+	//(I2U8 | I2U9),
+	//(I1U8 | I1U9),
+	//(I0U8 | I0U9),
+	//(I8U8 | I8U9),
+	//(I9U8 | I9U9),
+	//(I10U8 | I10U9),
+	//(I11U8 | I11U9),
+	//(I12U8 | I12U9),
+	//(I13U8 | I13U9),
+	//(I14U8 | I14U9),
+	//(I15U8 | I15U9)
+//};
+
 uint8_t sensor_pattern[OVERALL_MESSAGE_PAIRS]={
-	(I7U8 | I7U9),
-	(I6U8 | I6U9),
-	(I5U8 | I5U9),
-	(I4U8 | I4U9),
-	(I3U8 | I3U9),
-	(I2U8 | I2U9),
-	(I1U8 | I1U9),
-	(I0U8 | I0U9),
-	(I8U8 | I8U9),
-	(I9U8 | I9U9),
-	(I10U8 | I10U9),
-	(I11U8 | I11U9),
-	(I12U8 | I12U9),
-	(I13U8 | I13U9),
-	(I14U8 | I14U9),
-	(I15U8 | I15U9)
+	(I7U9),
+	(I6U9),
+	(I5U9),
+	(I4U9),
+	(I3U9),
+	(I2U9),
+	(I1U9),
+	(I0U9),
+	(I8U9),
+	(I9U9),
+	(I10U9),
+	(I11U9),
+	(I12U9),
+	(I13U9),
+	(I14U9),
+	(I15U9)
 };
+
 
 void HC595PW_Init_Registers(void) {
 	////Make the Data(DS), Shift clock (SH_CP), Store Clock (ST_CP) lines output
@@ -110,20 +130,24 @@ void HC595PW_reg_write(uint8_t data){
 	 HC595Latch();	
 }
 
+//NCP18XH103F03RB
 #define RES_VALUE 10000
 #define THERMISTORNOMINAL 10000
+//+1.7K is the offset
 // temp. for nominal resistance (almost always 25 C)
 #define TEMPERATURENOMINAL 25
 // The beta coefficient of the thermistor (usually 3000-4000)
-#define BCOEFFICIENT 3950
+#define BCOEFFICIENT 3380
+#define SAMPLING 15
 void HC595PW_CD74HCT_send_read(void) {
 	//Getting ADC value
 	//uint16_t ADC_SensorA, ADC_SensorB, ADC_SensorC, ADC_SensorD;
 	//SPI_send_byte((uint8_t)ADC_v);
-	
+	float res_v1, res_v2, res_v3, res_v4;
 	for(int i=0;i<OVERALL_MESSAGE_PAIRS;i++){
 		//Write the data to HC595
-		HC595PW_reg_write(sensor_pattern[i]);
+		//HC595PW_reg_write(sensor_pattern[i]);
+		HC595PW_reg_write(0b00000100);
 		SPI_send_byte(sensor_pattern[i]);
 		_delay_us(73+19);
 		//ADC_SensorA = adc_read(9);
@@ -131,18 +155,25 @@ void HC595PW_CD74HCT_send_read(void) {
 		//ADC_SensorC = adc_read(2);
 		//ADC_SensorD = adc_read(3);
 		//Value of the resitance for each ADC
-		float res_v1 = RES_VALUE / (1023 / (adc_read(9) >> 2)) - 1;
-		float res_v2 = RES_VALUE / (1023 / (adc_read(8) >> 2)) - 1;
-		float res_v3 = RES_VALUE / (1023 / (adc_read(2) >> 2)) - 1;
-		float res_v4 = RES_VALUE / (1023 / (adc_read(3) >> 2)) - 1;
+		// convert the value to resistance
+		
+		//reading = (1023 / reading)  - 1;     // (1023/ADC - 1)
+		//reading = SERIESRESISTOR / reading;  // 10K / (1023/ADC - 1)
+		
+		for(int i=0;i<SAMPLING;i++) {
+			res_v1 += RES_VALUE / ((1023 / (adc_read(9))) - 1);
+			res_v2 += RES_VALUE / ((1023 / (adc_read(8))) - 1);
+			res_v3 += RES_VALUE / ((1023 / (adc_read(2))) - 1);
+			res_v4 += RES_VALUE / ((1023 / (adc_read(3))) - 1);				
+		}
 		
 		//SensorTemp[i] = adc_read(9);
 		//SensorTemp[i] = 1;
 		float steinhart1, steinhart2, steinhart3, steinhart4;
-		steinhart1 = log(res_v1 / THERMISTORNOMINAL)/BCOEFFICIENT;
-		steinhart2 = log(res_v2 / THERMISTORNOMINAL)/BCOEFFICIENT;
-		steinhart3 = log(res_v3 / THERMISTORNOMINAL)/BCOEFFICIENT;
-		steinhart4 = log(res_v4 / THERMISTORNOMINAL)/BCOEFFICIENT;
+		steinhart1 = log((res_v1/15.0) / THERMISTORNOMINAL)/BCOEFFICIENT;
+		steinhart2 = log((res_v2/15.0) / THERMISTORNOMINAL)/BCOEFFICIENT;
+		steinhart3 = log((res_v3/15.0) / THERMISTORNOMINAL)/BCOEFFICIENT;
+		steinhart4 = log((res_v4/15.0) / THERMISTORNOMINAL)/BCOEFFICIENT;
 		
 		steinhart1 += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
 		steinhart2 += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
@@ -155,10 +186,17 @@ void HC595PW_CD74HCT_send_read(void) {
 		steinhart4 = (1.0 / steinhart4)-273.12;        // Invert / convert to C
 		  
 		// (1023 / reading)  - 1;
-		SPI_send_byte(steinhart1);
-		SPI_send_byte(steinhart2);
-		SPI_send_byte(steinhart3);
-		SPI_send_byte(adc_read(3) >> 2);
+		//SPI_send_byte(res_v1/SAMPLING);
+		uint16_t tmp = adc_read(8); 
+		SPI_send_byte((uint8_t)(tmp >> 8));
+		SPI_send_byte((uint8_t)tmp);
+		tmp = RES_VALUE / ((1023.0 / (tmp)) - 1);
+		SPI_send_byte((uint8_t)(tmp >> 8));
+		SPI_send_byte((uint8_t)tmp);
+		//SPI_send_byte(res_v3/15);
+		//SPI_send_byte((uint8_t)(steinhart2 >> 8));
+		//SPI_send_byte((uint8_t)steinhart2);
+		//SPI_send_byte(steinhart3);
 		//SensorTemp[16+i] = 0b00001111;
 		//SensorTemp[32+i] = adc_read(2) >> 2;
 		//SensorTemp[48+i] = adc_read(3) >> 2;

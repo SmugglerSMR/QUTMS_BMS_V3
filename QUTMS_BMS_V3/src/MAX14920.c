@@ -116,8 +116,9 @@ double MAX14920_ReadData(void) {
 	
 	//Getting ADC value
 	uint16_t ADC_v = adc_read(6);	
+	SPI_send_byte((uint8_t)(ADC_v>>8));
 	SPI_send_byte((uint8_t)ADC_v);
-	voltage = ADC_v * Vin / 1024;
+	voltage = ADC_v * Vin / 1023;
 	return voltage;
 }
 //Need a structure, to keep what balancing command has been sent already, as a global variable.

@@ -12,6 +12,7 @@ void ADC_init(void) {
 	// !!!! If any inaccuaracies accured, choise option without capacitor
 	//ADMUX = (1<<REFS0)| (1<<AREFEN);	// With capacitor
 	ADMUX = (1<<REFS0); // Without capacitor
+	//ADMUX = (1<<REFS1) | (1<<REFS0); // Internal 2.56V re
 	CLEAR_BIT(ADMUX, ADLAR); /* make sure bits are right adjusted */	
 	// 16MHz clock/128 prescaler= 125kHz = 0.000008s.
 	ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
