@@ -108,6 +108,7 @@ void MAX14920_EnableHoldPhase(bool sample) {
 		//WRITE_BIT(MAX14920_SPI_message.spiControl, MAX14920_SMPLB_bit, 0);
 		MAX14920_SPI_message.spiSMPLB = 0;
 	}
+	
 	_delay_us(50);
 }
 double MAX14920_ReadData(void) {
@@ -143,6 +144,7 @@ double MAX14920_ReadCellVoltage(int cellN) {
 	else return 0.0;
 	
 	MAX14920_EnableHoldPhase(false);
+	MAX14920_reg_write();
 	return MAX14920_ReadData();
 }
 

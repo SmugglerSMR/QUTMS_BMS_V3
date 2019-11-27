@@ -168,10 +168,10 @@ int main (void)
 		//SPI_send_byte((overallVoltage));
 		
 		// Report fault on any of the cells
-		if(MAX14920_SPI_output.spiCellStatusC01_C08 ||
-		   MAX14920_SPI_output.spiCellStatusC09_C16) {
-			SPI_send_byte(0b1111001);
-		}
+		//if(MAX14920_SPI_output.spiCellStatusC01_C08 ||
+		   //MAX14920_SPI_output.spiCellStatusC09_C16) {
+			//SPI_send_byte(0b1111001);
+		//}
 		// Toggle balancer
 		// TODO: Recheck values before playing with balancer
 		// TODO: Make sure that values for threshold is accurate first

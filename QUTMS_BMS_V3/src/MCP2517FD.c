@@ -3,6 +3,8 @@
  *
  * Created: 22/11/2019 1:33:46 PM
  *  Author: sadykov
+ * Ñ1-Ñ10 will report one during hold phase if below 1.4-1.6V
+ * or above 4.75-5.25V
  */ 
 #include "MCP2517FD.h"
 #include "macros.h"
