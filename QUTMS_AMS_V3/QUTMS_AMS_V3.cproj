@@ -207,6 +207,18 @@
     <Folder Include="src\config\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\MCP2517.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\MCP2517.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\MCP2517_defines.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\MCP2517_reg.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\SPI.c">
       <SubType>compile</SubType>
     </Compile>

@@ -6,36 +6,51 @@
  */ 
 #include "SPI.h"
 
-void SPI_init(void)
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+//  SPI Functions
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+void spi_init(uint8_t clkRate0, uint8_t clkRate1)
 {
-	// When Addid SPIPS as 0 - SPi signals directed to MISO, MOSI, SCK and SS
-	// Whed SPIPS as 1 - Alternate SPi pins, MISO_A, MOSI_A, SCK_A, SS_A
-	//MCUCR &= ~(1<<SPIPS);
-	//DDR_SPI = (1<<DD_MOSI)|(1<<DD_SCK)
-	
-	SPCR =	 (0<<SPIE)	//(Reset Interupt)
-			|(1<<SPE)	//(Enable SPI)
-			|(0<<DORD)	//(MSB transmitted first)
-			|(1<<MSTR)	//(Make Master[MSTR])
-			|(0<<CPOL)	//(SCL is low on idle)
-			|(1<<CPHA)	//(Leading edge sample)
-			|(1<<SPR0)	//(Set Clocl rate f_osc/16[SPR0=1|SPR1=0])
-			|(0<<SPR1);
+	SPCR = (SPI_INTERRUPT<<SPIE)
+	|(1<<SPE)
+	|(SPI_DATA_ORDER<<DORD)
+	|(SPI_MSTR_MODE<<MSTR)
+	|(SPI_CLK_POLARITY<<CPOL)
+	|(SPI_CLK_PHASE<<CPHA)
+	|(clkRate0<<SPR0)
+	|(clkRate1<<SPR1);
 	//set interrupt, enable SPI, MSB mode, set as master, low is idle, read on leading edge, Set to speed(fosc/4) SPR0=1, SPR1=0
-	SPSR = (1<<SPI2X);	//set whether we want 2x speed or not (1=2x speed).
+	SPSR = (DBL_CLK<<SPI2X);	//set whether we want 2x speed or not (1=2x speed).
 	SPDR = 0x00;		//ensure data register has nothing in it
 }
 
-uint8_t SPI_send_byte(uint8_t c)
-{
-	SPDR = c;					//write data to the transmission register. Writing to this initiates transmission.
+//shifts out 8 bits of data
+//  uint8_t data - the data to be shifted out
+//  returns uint8_t - the data received during sending
+// FULLY WORKING
+uint8_t spi_send_byte(uint8_t data) {
+	/* Start transmission */ // Transmission is started by writing data to the transmission register
+	SPDR = data;
+	/* Wait for transmission complete */
 	while(!(SPSR & (1<<SPIF)));
-	return SPDR;				//return any data that was shifted into this register upon transmission.
+	/* Return any data that was shifted into this register upon transmission  */
+	return SPDR;
 }
 
-void SPI_MasterTransmit(char cData) {
-	/*Start transmission*/
-	SPDR = cData;
-	/*Wait for transmission complete*/
-	while(!(SPSR & (1<<SPIF)));
+// FULLY WORKING
+void spi_transfer_buffer(uint8_t *buf, uint8_t count)
+{
+	if (count == 0) return;
+	for(uint8_t i = 0; i < count; i++) {
+		uint8_t out = *(buf + i);
+		SPDR = out;
+		while(!(SPSR & (1<<SPIF)));
+		*(buf + i) = SPDR;
+	}
+}
+
+
+
+void spi_disable(void) {
+	SPDR = 0;
 }
