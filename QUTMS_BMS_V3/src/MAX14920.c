@@ -22,9 +22,10 @@ void MAX14920_Init_Registers(void) {
 			~(1<<MAX14920_PIN_MISO)); // MISO as input
 	DDRC |= ((1<<MAX14920_PIN_SAMPL)|
 			 (1<<MAX14920_PIN_CS));
-	DDRD |= ((1<<MAX14920_PIN_EN));
+	DDRD |= ((1<<MAX14920_PIN_EN)|
+			 (1<<PIND3));	// Set Slave Select (SS) High
 	
-	// Set SS as high to disable transmission.
+	// Set CS as high to disable transmission.
 	WRITE_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS, HIGH);
 	// TODO: Try make MISO and MOSO low
 	
