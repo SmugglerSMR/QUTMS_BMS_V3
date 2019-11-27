@@ -207,6 +207,9 @@
     <Folder Include="src\config\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\macros.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\MCP2517.c">
       <SubType>compile</SubType>
     </Compile>

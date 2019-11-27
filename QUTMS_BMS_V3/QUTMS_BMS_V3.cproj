@@ -238,6 +238,18 @@
     <Compile Include="src\MCP2517FD.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\MCP2517_defines.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\MCP2517_reg.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\SPI_z.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\SPI_z.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\SPI.c">
       <SubType>compile</SubType>
     </Compile>

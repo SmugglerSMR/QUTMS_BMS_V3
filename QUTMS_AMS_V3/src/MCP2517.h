@@ -29,8 +29,8 @@
 #define CAN_CS_A		PINA0
 #define CAN_CS_B		PINA1
 
-
-static uint8_t CAN_CS=PINA0;
+#define CAN_CS			CAN_CS_A
+//static uint8_t CAN_CS=PINA0;
 
 void MCP2517_init();
 
