@@ -26,9 +26,10 @@
 
 
 /* CAN */
-#define CAN_CS_PORT		PORTB
-#define CAN_CS		PINB3
-#define CAN_INT		PINB0
+#define CAN_CS_PORT		PORTA
+#define CAN_CS_0		PINA0
+#define CAN_CS_1		PINA1
+//#define CAN_INT		PINB0
 
 /* LEDS */
 //#define LED_A		PIND6

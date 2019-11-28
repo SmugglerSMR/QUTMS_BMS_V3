@@ -26,31 +26,31 @@
 #define CAN_ID_WHEEL	    0x00400000 /**< CAN Bus Identifier for Wheel */
 
 
-void MCP2517_init(void);
+void MCP2517_init(uint8_t CAN_CS);
 
 void enterWordInBufferAtIndex (const uint32_t value, uint8_t buff[], const uint8_t index);
 uint32_t wordFromBufferAtIndex (uint8_t buff[], const uint8_t index);
 
-void MCP2517_writeReg8(const uint16_t regAddr, const uint8_t value);
-void MCP2517_writeReg32(const uint16_t regAddr, const uint32_t value);
-uint8_t MCP2517_readReg8(const uint16_t regAddr);
-uint32_t MCP2517_readReg32(const uint16_t regAddr);
+void MCP2517_writeReg8(const uint16_t regAddr, const uint8_t value, uint8_t CAN_CS);
+void MCP2517_writeReg32(const uint16_t regAddr, const uint32_t value, uint8_t CAN_CS);
+uint8_t MCP2517_readReg8(const uint16_t regAddr, uint8_t CAN_CS);
+uint32_t MCP2517_readReg32(const uint16_t regAddr, uint8_t CAN_CS);
 
-void MCP2517_assertCS(void);
-void MCP2517_deassertCS(void);
+void MCP2517_assertCS(uint8_t CAN_CS);
+void MCP2517_deassertCS(uint8_t CAN_CS);
 
-void MCP2517_reset(void);
-void MCP2517_setMode(MCP2517_OPERATION_MODE opMode);
-uint8_t MCP2517_getMode(void);
-void MCP2517_testRAM(void);
+void MCP2517_reset(uint8_t CAN_CS);
+void MCP2517_setMode(MCP2517_OPERATION_MODE opMode, uint8_t CAN_CS);
+uint8_t MCP2517_getMode(uint8_t CAN_CS);
+void MCP2517_testRAM(uint8_t CAN_CS);
 
-uint8_t MCP2517_receiveFifoStatus(MCP2517_FIFO_CHANNEL channel, MCP2517_RX_FIFO_STATUS *flags);
-uint8_t MCP2517_transmitFifoStatus(MCP2517_FIFO_CHANNEL channel, MCP2517_TX_FIFO_STATUS *flags);
+uint8_t MCP2517_receiveFifoStatus(MCP2517_FIFO_CHANNEL channel, MCP2517_RX_FIFO_STATUS *flags, uint8_t CAN_CS);
+uint8_t MCP2517_transmitFifoStatus(MCP2517_FIFO_CHANNEL channel, MCP2517_TX_FIFO_STATUS *flags, uint8_t CAN_CS);
 
-void MCP2517_recieveMessage(uint32_t *receiveID, uint8_t *numDataBytes, uint8_t *data);
-void MCP2517_readMsgReceive(uint32_t *receiveID, uint8_t *numDataBytes, uint8_t *data, MCP2517_RX_MSG_OBJ *rxObj);
+void MCP2517_recieveMessage(uint32_t *receiveID, uint8_t *numDataBytes, uint8_t *data, uint8_t CAN_CS);
+void MCP2517_readMsgReceive(uint32_t *receiveID, uint8_t *numDataBytes, uint8_t *data, MCP2517_RX_MSG_OBJ *rxObj, uint8_t CAN_CS);
 
-uint8_t MCP2517_transmitMessage(uint32_t canMessageID, uint8_t numDataBytes, uint8_t *messageData);
-void MCP2517_loadMsgTXFifo(MCP2517_TX_MSG_OBJ *txObj, uint8_t *payload, uint8_t numDataBytes);
+uint8_t MCP2517_transmitMessage(uint32_t canMessageID, uint8_t numDataBytes, uint8_t *messageData, uint8_t CAN_CS);
+void MCP2517_loadMsgTXFifo(MCP2517_TX_MSG_OBJ *txObj, uint8_t *payload, uint8_t numDataBytes, uint8_t CAN_CS);
 
 #endif /* MCP2517_H_ */

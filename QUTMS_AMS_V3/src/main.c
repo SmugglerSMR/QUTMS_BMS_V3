@@ -16,17 +16,18 @@ uint8_t AMS_BOARD_DATA[5] = {0};
 int main (void)
 {
 	/* Insert system clock initialization code here (sysclk_init()). */
-	DDRB = 0b10111000; // MOSI and SCK and CAN_CS as output, SS output
+	DDRB = 0b10110000; // MOSI and SCK and SS output
 	
-	DDRA = 0b00000011;	//CS Pins high
+	DDRA = 0b00000011;	//CS_0 CS_1 Pins high
 	
-	WRITE_BIT(PORTA,PINA1,HIGH);
-	WRITE_BIT(PORTA,PINA0,HIGH);	
+	WRITE_BIT(CAN_CS_PORT,CAN_CS_0,HIGH);
+	WRITE_BIT(CAN_CS_PORT,CAN_CS_1,HIGH);	
 	
 	
 	spi_init(1,0); //0,0
 	_delay_ms(50);
-	MCP2517_init();
+	MCP2517_init(CAN_CS_0);
+	MCP2517_init(CAN_CS_1);
 	//PORTB |= (1<<PINB4);
 	
 	//PORTB &= ~(1<<PINB5);
@@ -42,7 +43,7 @@ int main (void)
 	uint32_t receiveID;
 	uint8_t numDataBytes;
 	
-	MCP2517_transmitMessage(CAN_ID_BMS, 5, AMS_BOARD_DATA);
+	MCP2517_transmitMessage(CAN_ID_BMS, 5, AMS_BOARD_DATA, CAN_CS_0);
 	_delay_ms(500);
 	while(1) {
 		//	spi_send_byte(0b00011000);
@@ -65,7 +66,7 @@ int main (void)
 		//spi_send_byte(0b11111111);spi_send_byte(0b11111111);spi_send_byte(0b11111111);
 		//_delay_ms(50);
 		//}
-		MCP2517_recieveMessage(&receiveID, &numDataBytes, data);
+		MCP2517_recieveMessage(&receiveID, &numDataBytes, data, CAN_CS_0);
 		if(receiveID == CAN_ID_AMS >> 18) {
 			//PORTC ^= 0b00001000;
 			spi_send_byte(0b11111111);spi_send_byte(0b11111111);spi_send_byte(0b11111111);
