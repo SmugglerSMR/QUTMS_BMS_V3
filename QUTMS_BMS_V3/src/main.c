@@ -48,9 +48,11 @@ void IO_init(void);
 void Toggle_LED(int id, int delay, int times);
 uint16_t DecToBin(float nn);
 
+extern uint16_t CellVoltages[10];
 extern uint16_t OveralVoltage;
 extern uint16_t Max_Resistance;
 extern uint16_t AverageCellVoltage;
+extern uint8_t BMS_BOARD_DATA[5];
 
 void IO_init(void) {
 	// Initialize LEDs
@@ -150,7 +152,8 @@ int main (void)
 	MAX14920_PerformDiagnosticsSecond();
 	
 	// CAN MEssage
-	BMS_BOARD_DATA[0] = 1;	//Board functionality
+	MCP2517_init();
+	BMS_BOARD_DATA[0] = 1;	//Board functionality	
 	
 	// Loop forever for checks	
 	uint8_t cycle = 0;
@@ -189,18 +192,19 @@ int main (void)
 		HC595PW_CD74HCT_send_read();
 		
 		//////////////////////////////////////////
-		// MCP2517FD - CANBUS
-		//MCP2517_recieveMessage(&receiveID, &numDataBytes, data);
-		//if(receiveID == CAN_ID_BMS >> 18) {
-			//PORTD ^= 0b00000001;
-			//MCP2517_transmitMessage(CAN_ID_AMS, 5, BMS_BOARD_DATA);
-			//_delay_ms(50);
-			//PORTD ^= 0b00000001;
-		//}
+		// MCP2517FD - CANBUS		
 		BMS_BOARD_DATA[1] = OveralVoltage;	//Board functionality
 		BMS_BOARD_DATA[2] = AverageCellVoltage;	//Board functionality
 		BMS_BOARD_DATA[3] = Max_Resistance;	//Board functionality
 		BMS_BOARD_DATA[4] = cycle;	//Board functionality
+		
+		MCP2517_recieveMessage(&receiveID, &numDataBytes, data);		
+		if(receiveID == CAN_ID_BMS >> 18) {
+			PORTD ^= 0b00000001;
+			MCP2517_transmitMessage(CAN_ID_AMS, 5, BMS_BOARD_DATA);
+			_delay_ms(50);
+			PORTD ^= 0b00000001;
+		}
 		
 		if(cycle >=200)
 			cycle = 0;

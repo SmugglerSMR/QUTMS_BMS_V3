@@ -34,6 +34,10 @@
 
 #define MAX14920_CELL_NUMBER	12
 
+#define SPI_SCK_PIN	7 //PB7
+#define SPI_MOSI_PIN	1 //PB1
+#define SPI_MISO_PIN	0 //PB0
+ 
 static uint16_t CellVoltages[10] = {0};
 static uint16_t OveralVoltage = 0;
 static uint16_t AverageCellVoltage = 0;

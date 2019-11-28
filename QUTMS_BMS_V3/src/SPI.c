@@ -28,9 +28,20 @@ uint8_t SPI_send_byte(uint8_t c)
 	return SPDR;				//return any data that was shifted into this register upon transmission.
 }
 
-void SPI_MasterTransmit(char cData) {
-	/*Start transmission*/
-	SPDR = cData;
-	/*Wait for transmission complete*/
-	while(!(SPSR & (1<<SPIF)));
+// FULLY WORKING
+void spi_transfer_buffer(uint8_t *buf, uint8_t count)
+{
+	if (count == 0) return;
+	for(uint8_t i = 0; i < count; i++) {
+		uint8_t out = *(buf + i);
+		SPDR = out;
+		while(!(SPSR & (1<<SPIF)));
+		*(buf + i) = SPDR;
+	}
+}
+
+
+
+void spi_disable(void) {
+	SPDR = 0;
 }
