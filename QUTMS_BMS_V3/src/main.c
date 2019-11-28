@@ -147,15 +147,15 @@ int main (void)
 	//board_init();
 	IO_init();
 	SPI_init();
-	//ADC_init();
+	ADC_init();
 	MAX14920_Init_Registers();
-	//HC595PW_Init_Registers();
+	HC595PW_Init_Registers();
 	MCP2517FD_Init_Registers();
 	MCP2517_init();
 	// Initialize MAX14920 micro controller
-	//MAX14920_Clear_SPI_messages();
-	//MAX14920_Enable();
-	//MAX14920_EnableHoldPhase(false);
+	MAX14920_Clear_SPI_messages();
+	MAX14920_Enable();
+	MAX14920_EnableHoldPhase(false);
 		
 	// Loop forever for checks
 	double overallVoltage = 0.0;
@@ -171,8 +171,8 @@ int main (void)
 	MCP2517_transmitMessage(CAN_ID_PDM, 5, AMU_BOARD_DATA);
 	while(1) {
 		//MAX14920_ReadAllCellsVoltage();
-		//_delay_ms(50);
-		//overallVoltage = MAX14920_ReadCellVoltage(2);
+		_delay_ms(50);
+		overallVoltage = MAX14920_ReadCellVoltage(2);
 		//for(int i=0; i<10; i++)
 			//SPI_send_byte((CellVoltages[i]));
 		//SPI_send_byte((overallVoltage));
