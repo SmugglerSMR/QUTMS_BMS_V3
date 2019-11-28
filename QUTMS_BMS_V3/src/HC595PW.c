@@ -9,6 +9,8 @@
 #include "CD74HCT4067.h"
 #include "ADC.h"
 #include "SPI.h"
+
+#include <string.h>
 //uint8_t sensor_pattern[OVERALL_MESSAGE_PAIRS]={
 	//(I7U8 | I7U9),
 	//(I6U8 | I6U9),
@@ -139,11 +141,13 @@ void HC595PW_reg_write(uint8_t data){
 // The beta coefficient of the thermistor (usually 3000-4000)
 #define BCOEFFICIENT 3380
 #define SAMPLING 15
+
+uint8_t storage [16];
 void HC595PW_CD74HCT_send_read(void) {
 	//Getting ADC value
 	//uint16_t ADC_SensorA, ADC_SensorB, ADC_SensorC, ADC_SensorD;
 	//SPI_send_byte((uint8_t)ADC_v);
-	float res_v1, res_v2, res_v3, res_v4;
+	uint16_t res_v1, res_v2, res_v3, res_v4;
 	for(int i=0;i<OVERALL_MESSAGE_PAIRS;i++){
 		//Write the data to HC595
 		//HC595PW_reg_write(sensor_pattern[i]);
@@ -169,11 +173,11 @@ void HC595PW_CD74HCT_send_read(void) {
 		
 		//SensorTemp[i] = adc_read(9);
 		//SensorTemp[i] = 1;
-		float steinhart1, steinhart2, steinhart3, steinhart4;
-		steinhart1 = log((res_v1/15.0) / THERMISTORNOMINAL)/BCOEFFICIENT;
-		steinhart2 = log((res_v2/15.0) / THERMISTORNOMINAL)/BCOEFFICIENT;
-		steinhart3 = log((res_v3/15.0) / THERMISTORNOMINAL)/BCOEFFICIENT;
-		steinhart4 = log((res_v4/15.0) / THERMISTORNOMINAL)/BCOEFFICIENT;
+		uint16_t steinhart1, steinhart2, steinhart3, steinhart4;
+		steinhart1 = log((res_v1/SAMPLING) / THERMISTORNOMINAL)/BCOEFFICIENT;
+		steinhart2 = log((res_v2/SAMPLING) / THERMISTORNOMINAL)/BCOEFFICIENT;
+		steinhart3 = log((res_v3/SAMPLING) / THERMISTORNOMINAL)/BCOEFFICIENT;
+		steinhart4 = log((res_v4/SAMPLING) / THERMISTORNOMINAL)/BCOEFFICIENT;
 		
 		steinhart1 += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
 		steinhart2 += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
@@ -188,14 +192,70 @@ void HC595PW_CD74HCT_send_read(void) {
 		// (1023 / reading)  - 1;
 		//SPI_send_byte(res_v1/SAMPLING);
 		uint16_t tmp = adc_read(8); 
+		uint16_t tmp1 = 0;
 		SPI_send_byte((uint8_t)(tmp >> 8));
 		SPI_send_byte((uint8_t)tmp);
-		tmp = RES_VALUE / ((1023.0 / (tmp)) - 1);
-		SPI_send_byte((uint8_t)(tmp >> 8));
-		SPI_send_byte((uint8_t)tmp);
+		tmp1 = RES_VALUE / ((1023.0 / (tmp)) - 1);
+		SPI_send_byte((uint8_t)(tmp1 >> 8));
+		SPI_send_byte((uint8_t)tmp1);
 		//SPI_send_byte(res_v3/15);
-		//SPI_send_byte((uint8_t)(steinhart2 >> 8));
-		//SPI_send_byte((uint8_t)steinhart2);
+		// 1/T = 1/T0 + 1/B * ln( R0 * ( ( adcMax / adcVal ) - 1 ) / R0 )
+		// 1/T = 1/298.15 + 1/3380 * ln((1023 / 366) - 1 )
+		// 1/T = 0.003527
+		
+		//10419 - 0,00334371165948168978373208291419
+		float steinhart;
+		uint8_t      bytes[sizeof(float)];
+		////steinhart = tmp / THERMISTORNOMINAL;     // (R/Ro)
+		//steinhart = log((1023.0/tmp)-1);          // ln(R/Ro)
+		//steinhart = 1/BCOEFFICIENT*steinhart;    // 1/B * ln(R/Ro)
+		//steinhart = 1.0/(TEMPERATURENOMINAL+273.15)+steinhart; // + (1/To)
+		//steinhart = 1.0 / steinhart;                 // Invert - 0.000118226313950
+		//steinhart -= 273.15;
+		steinhart = tmp1 / THERMISTORNOMINAL;     // (R/Ro)
+		steinhart = log(steinhart);                  // ln(R/Ro)
+		steinhart /= BCOEFFICIENT;                   // 1/B * ln(R/Ro)
+		steinhart += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
+		steinhart = 1.0 / steinhart;                 // Invert
+		steinhart -= 273.15;                         // convert to C
+		
+		*(float*)(bytes) = steinhart*10;  // convert float to bytes
+		//memcpy(steinhart, &storage, 8);
+		//SPI_send_byte((uint8_t)bytes[0]);
+		//SPI_send_byte((uint8_t)bytes[1]);
+		//SPI_send_byte((uint8_t)bytes[2]);
+		//SPI_send_byte((uint8_t)bytes[3]);
+		
+		if(steinhart > 40) {
+			SPI_send_byte((uint8_t)(0b11111111));
+			SPI_send_byte((uint8_t)(0b11111111));
+			SPI_send_byte((uint8_t)(0b11111111));
+			SPI_send_byte((uint8_t)(0b11111111));
+		}
+		else if(steinhart > 30) {
+			SPI_send_byte((uint8_t)(0b00000000));
+			SPI_send_byte((uint8_t)(0b11111111));
+			SPI_send_byte((uint8_t)(0b11111111));
+			SPI_send_byte((uint8_t)(0b11111111));
+		} else if (steinhart > 25) {
+			SPI_send_byte((uint8_t)(0b00000000));
+			SPI_send_byte((uint8_t)(0b00000000));
+			SPI_send_byte((uint8_t)(0b11111111));
+			SPI_send_byte((uint8_t)(0b11111111));
+			
+		} else if (steinhart > 20) {
+			SPI_send_byte((uint8_t)(0b00000000));
+			SPI_send_byte((uint8_t)(0b00000000));
+			SPI_send_byte((uint8_t)(0b00000000));
+			SPI_send_byte((uint8_t)(0b11111111));
+			
+		} else {
+			SPI_send_byte((uint8_t)(0b00000000));
+			SPI_send_byte((uint8_t)(0b00010000));
+			SPI_send_byte((uint8_t)(0b00010000));
+			SPI_send_byte((uint8_t)(0b00000000));
+		}
+		
 		//SPI_send_byte(steinhart3);
 		//SensorTemp[16+i] = 0b00001111;
 		//SensorTemp[32+i] = adc_read(2) >> 2;

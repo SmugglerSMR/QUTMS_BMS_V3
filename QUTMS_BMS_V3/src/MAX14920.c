@@ -110,15 +110,20 @@ void MAX14920_EnableHoldPhase(bool sample) {
 	}
 	_delay_us(50);
 }
-double MAX14920_ReadData(void) {
+uint16_t MAX14920_ReadData(void) {
 	// In sample phase ADC = Vp/12, Vp = 30.0, 
-	double voltage = 0.0, Vin = 3.3;
-	
+	double Vin = 3.3;
+	uint16_t voltage = 0; 
 	//Getting ADC value
-	uint16_t ADC_v = adc_read(6);	
+	uint16_t ADC_v = adc_read(6);
+	SPI_send_byte(0b00001111);
 	SPI_send_byte((uint8_t)(ADC_v>>8));
 	SPI_send_byte((uint8_t)ADC_v);
-	voltage = ADC_v * Vin / 1023;
+	voltage = ADC_v * Vin / 1023*100;
+	_delay_us(100);
+	SPI_send_byte((uint8_t)(voltage>>8));
+	SPI_send_byte((uint8_t)voltage);
+	
 	return voltage;
 }
 //Need a structure, to keep what balancing command has been sent already, as a global variable.
@@ -126,15 +131,14 @@ double MAX14920_ReadCellVoltage(int cellN) {
 	
 	// Disable Sampler??
 	//SET_BIT(MAX14920_PORT_CS, PINC6);	
-	if(cellN == 0) {		// Read overall voltage
-		MAX14920_EnableHoldPhase(true);
+	MAX14920_EnableHoldPhase(true);
+	if(cellN == 0) {		// Read overall voltage		
 		MAX14920_SPI_message.spiEnableCellSelect = 0;
 		MAX14920_SPI_message.spiCell4bit = 0011;
 		MAX14920_reg_write();
 		_delay_us(60);
 		
 	} else if(cellN > 0) {	// Read cell by cell
-		MAX14920_EnableHoldPhase(true);
 		MAX14920_SPI_message.spiEnableCellSelect = 1;
 		MAX14920_SPI_message.spiCell4bit = cellTable[cellN-1];
 		MAX14920_reg_write();
@@ -143,6 +147,7 @@ double MAX14920_ReadCellVoltage(int cellN) {
 	else return 0.0;
 	
 	MAX14920_EnableHoldPhase(false);
+	MAX14920_reg_write();
 	return MAX14920_ReadData();
 }
 

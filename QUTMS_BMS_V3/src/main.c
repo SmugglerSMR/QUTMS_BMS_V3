@@ -149,7 +149,7 @@ int main (void)
 	ADC_init();
 	MAX14920_Init_Registers();
 	HC595PW_Init_Registers();
-	MCP2517FD_Init_Registers();
+	//MCP2517FD_Init_Registers();
 	
 	// Initialize MAX14920 micro controller
 	MAX14920_Clear_SPI_messages();
@@ -157,7 +157,7 @@ int main (void)
 	MAX14920_EnableHoldPhase(false);
 		
 	// Loop forever for checks
-	double overallVoltage = 0.0;
+	uint16_t overallVoltage = 0;
 	while(1) {
 		Toggle_LED(7, 1000,1);
 		//MAX14920_ReadAllCellsVoltage();
@@ -170,8 +170,9 @@ int main (void)
 		// Report fault on any of the cells
 		if(MAX14920_SPI_output.spiCellStatusC01_C08 ||
 		   MAX14920_SPI_output.spiCellStatusC09_C16) {
-			SPI_send_byte(0b1111001);
+			Toggle_LED(5,500,1);
 		}
+		
 		// Toggle balancer
 		// TODO: Recheck values before playing with balancer
 		// TODO: Make sure that values for threshold is accurate first
@@ -179,7 +180,7 @@ int main (void)
 		//MAX14920_EnableLoadBalancer(true);
 		
 		// Start Temperature readings
-		//HC595PW_CD74HCT_send_read();
+		HC595PW_CD74HCT_send_read();
 		//for(int i=0; i<64;i++)
 			//SPI_send_byte(adc_read(2) >> 2);
 	}

@@ -42,7 +42,7 @@ void MAX14920_Enable(void);
 void MAX14920_OffsetCallibration(void);
 void MAX14920_EnableHoldPhase(bool enable);
 
-double MAX14920_ReadData(void);
+uint16_t MAX14920_ReadData(void);
 double MAX14920_ReadCellVoltage(int cellN);
 void MAX14920_ReadAllCellsVoltage(void);
 void MAX14920_EnableLoadBalancer(bool enable);
