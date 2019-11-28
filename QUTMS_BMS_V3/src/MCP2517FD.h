@@ -17,6 +17,7 @@
 #define MCP2517FD_PIN_SCK	PINB7
 #define MCP2517FD_PIN_MOSI	PINB1
 #define MCP2517FD_PIN_MISO	PINB0
+#define MCP2517FD_PIN_SS	PIND3
 
 #define MCP2517FD_PORT_CS		PORTC
 #define MCP2517FD_PIN_CS		PINC7		//***
@@ -30,4 +31,6 @@
 
 void MCP2517FD_Init_Registers(void);
 void MCP2517FD_reg_write(uint8_t reg_address, uint8_t reg_value);
+
+static uint8_t BMS_BOARD_DATA[5] = {0};
 #endif /* MCP2517FD_H_ */

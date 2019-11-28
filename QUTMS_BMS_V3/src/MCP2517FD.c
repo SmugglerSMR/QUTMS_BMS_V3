@@ -12,7 +12,7 @@ void MCP2517FD_Init_Registers(void) {
 	DDRB |= ((1<<MCP2517FD_PIN_SCK)|
 			(1<<MCP2517FD_PIN_MOSI)|
 			~(1<<MCP2517FD_PIN_MISO)); // MISO as input
-	
+	DDRD |= ((1<<MCP2517FD_PIN_SS));
 	//Enabling CAN ship
 	// Set SS as high to disable transmission.
 	WRITE_BIT(MCP2517FD_PORT_CS, MCP2517FD_PIN_CS, HIGH);

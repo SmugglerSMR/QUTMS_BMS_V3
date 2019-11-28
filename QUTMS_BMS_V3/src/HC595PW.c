@@ -10,45 +10,24 @@
 #include "ADC.h"
 #include "SPI.h"
 
-#include <string.h>
-//uint8_t sensor_pattern[OVERALL_MESSAGE_PAIRS]={
-	//(I7U8 | I7U9),
-	//(I6U8 | I6U9),
-	//(I5U8 | I5U9),
-	//(I4U8 | I4U9),
-	//(I3U8 | I3U9),
-	//(I2U8 | I2U9),
-	//(I1U8 | I1U9),
-	//(I0U8 | I0U9),
-	//(I8U8 | I8U9),
-	//(I9U8 | I9U9),
-	//(I10U8 | I10U9),
-	//(I11U8 | I11U9),
-	//(I12U8 | I12U9),
-	//(I13U8 | I13U9),
-	//(I14U8 | I14U9),
-	//(I15U8 | I15U9)
-//};
-
 uint8_t sensor_pattern[OVERALL_MESSAGE_PAIRS]={
-	(I7U9),
-	(I6U9),
-	(I5U9),
-	(I4U9),
-	(I3U9),
-	(I2U9),
-	(I1U9),
-	(I0U9),
-	(I8U9),
-	(I9U9),
-	(I10U9),
-	(I11U9),
-	(I12U9),
-	(I13U9),
-	(I14U9),
-	(I15U9)
+	(I7U8 | I7U9),
+	(I6U8 | I6U9),
+	(I5U8 | I5U9),
+	(I4U8 | I4U9),
+	(I3U8 | I3U9),
+	(I2U8 | I2U9),
+	(I1U8 | I1U9),
+	(I0U8 | I0U9),
+	(I8U8 | I8U9),
+	(I9U8 | I9U9),
+	(I10U8 | I10U9),
+	(I11U8 | I11U9),
+	(I12U8 | I12U9),
+	(I13U8 | I13U9),
+	(I14U8 | I14U9),
+	(I15U8 | I15U9)
 };
-
 
 void HC595PW_Init_Registers(void) {
 	////Make the Data(DS), Shift clock (SH_CP), Store Clock (ST_CP) lines output
@@ -132,129 +111,67 @@ void HC595PW_reg_write(uint8_t data){
 	 HC595Latch();	
 }
 
-//NCP18XH103F03RB
-#define RES_VALUE 10000
-#define THERMISTORNOMINAL 10000
-//+1.7K is the offset
-// temp. for nominal resistance (almost always 25 C)
-#define TEMPERATURENOMINAL 25
-// The beta coefficient of the thermistor (usually 3000-4000)
-#define BCOEFFICIENT 3380
-#define SAMPLING 15
-
-uint8_t storage [16];
+float HC595_CalcTemp(uint16_t resistance) {
+	// 1/T = 1/T0 + 1/B * ln( R0 * ( ( adcMax / adcVal ) - 1 ) / R0 )
+	// 1/T = 1/298.15 + 1/3380 * ln((1023 / 366) - 1 )
+	// 1/T = 0.003527
+	float steinhart;
+	
+	steinhart = resistance / THERMISTORNOMINAL;     // (R/Ro)
+	steinhart = log(steinhart);                  // ln(R/Ro)
+	steinhart /= BCOEFFICIENT;                   // 1/B * ln(R/Ro)
+	steinhart += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
+	steinhart = 1.0 / steinhart;                 // Invert
+	steinhart -= 273.15;                         // convert to C
+	
+	//*(float*)(bytes) = steinhart*10;  // convert float to bytes
+	//SPI_send_byte((uint8_t)bytes[0]);
+	//SPI_send_byte((uint8_t)bytes[1]);
+	//SPI_send_byte((uint8_t)bytes[2]);
+	//SPI_send_byte((uint8_t)bytes[3]);
+	
+	if(steinhart >= 50.0 || steinhart <= 5)
+		PORTC ^= 0b00000001; // Indicate cold om LED3
+	return steinhart;
+}
 void HC595PW_CD74HCT_send_read(void) {
 	//Getting ADC value
 	//uint16_t ADC_SensorA, ADC_SensorB, ADC_SensorC, ADC_SensorD;
 	//SPI_send_byte((uint8_t)ADC_v);
-	uint16_t res_v1, res_v2, res_v3, res_v4;
+	int ADC_IDs[4] = {9,8,2,3};
+	uint16_t res_v[4] = {0};
+	uint16_t temp[4] = {0};
+	Max_Resistance = 0;
 	for(int i=0;i<OVERALL_MESSAGE_PAIRS;i++){
 		//Write the data to HC595
 		//HC595PW_reg_write(sensor_pattern[i]);
-		HC595PW_reg_write(0b00000100);
+		HC595PW_reg_write(sensor_pattern[i]);
 		SPI_send_byte(sensor_pattern[i]);
 		_delay_us(73+19);
-		//ADC_SensorA = adc_read(9);
-		//ADC_SensorB = adc_read(8);
-		//ADC_SensorC = adc_read(2);
-		//ADC_SensorD = adc_read(3);
+		
 		//Value of the resitance for each ADC
 		// convert the value to resistance
 		
 		//reading = (1023 / reading)  - 1;     // (1023/ADC - 1)
-		//reading = SERIESRESISTOR / reading;  // 10K / (1023/ADC - 1)
-		
-		for(int i=0;i<SAMPLING;i++) {
-			res_v1 += RES_VALUE / ((1023 / (adc_read(9))) - 1);
-			res_v2 += RES_VALUE / ((1023 / (adc_read(8))) - 1);
-			res_v3 += RES_VALUE / ((1023 / (adc_read(2))) - 1);
-			res_v4 += RES_VALUE / ((1023 / (adc_read(3))) - 1);				
-		}
-		
-		//SensorTemp[i] = adc_read(9);
-		//SensorTemp[i] = 1;
-		uint16_t steinhart1, steinhart2, steinhart3, steinhart4;
-		steinhart1 = log((res_v1/SAMPLING) / THERMISTORNOMINAL)/BCOEFFICIENT;
-		steinhart2 = log((res_v2/SAMPLING) / THERMISTORNOMINAL)/BCOEFFICIENT;
-		steinhart3 = log((res_v3/SAMPLING) / THERMISTORNOMINAL)/BCOEFFICIENT;
-		steinhart4 = log((res_v4/SAMPLING) / THERMISTORNOMINAL)/BCOEFFICIENT;
-		
-		steinhart1 += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
-		steinhart2 += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
-		steinhart3 += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
-		steinhart4 += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
-		
-		steinhart1 = (1.0 / steinhart1)-273.12;        // Invert / convert to C
-		steinhart2 = (1.0 / steinhart2)-273.12;        // Invert / convert to C
-		steinhart3 = (1.0 / steinhart3)-273.12;        // Invert / convert to C
-		steinhart4 = (1.0 / steinhart4)-273.12;        // Invert / convert to C
-		  
-		// (1023 / reading)  - 1;
-		//SPI_send_byte(res_v1/SAMPLING);
-		uint16_t tmp = adc_read(8); 
-		uint16_t tmp1 = 0;
-		SPI_send_byte((uint8_t)(tmp >> 8));
-		SPI_send_byte((uint8_t)tmp);
-		tmp1 = RES_VALUE / ((1023.0 / (tmp)) - 1);
-		SPI_send_byte((uint8_t)(tmp1 >> 8));
-		SPI_send_byte((uint8_t)tmp1);
-		//SPI_send_byte(res_v3/15);
-		// 1/T = 1/T0 + 1/B * ln( R0 * ( ( adcMax / adcVal ) - 1 ) / R0 )
-		// 1/T = 1/298.15 + 1/3380 * ln((1023 / 366) - 1 )
-		// 1/T = 0.003527
-		
-		//10419 - 0,00334371165948168978373208291419
-		float steinhart;
-		uint8_t      bytes[sizeof(float)];
-		////steinhart = tmp / THERMISTORNOMINAL;     // (R/Ro)
-		//steinhart = log((1023.0/tmp)-1);          // ln(R/Ro)
-		//steinhart = 1/BCOEFFICIENT*steinhart;    // 1/B * ln(R/Ro)
-		//steinhart = 1.0/(TEMPERATURENOMINAL+273.15)+steinhart; // + (1/To)
-		//steinhart = 1.0 / steinhart;                 // Invert - 0.000118226313950
-		//steinhart -= 273.15;
-		steinhart = tmp1 / THERMISTORNOMINAL;     // (R/Ro)
-		steinhart = log(steinhart);                  // ln(R/Ro)
-		steinhart /= BCOEFFICIENT;                   // 1/B * ln(R/Ro)
-		steinhart += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
-		steinhart = 1.0 / steinhart;                 // Invert
-		steinhart -= 273.15;                         // convert to C
-		
-		*(float*)(bytes) = steinhart*10;  // convert float to bytes
-		//memcpy(steinhart, &storage, 8);
-		//SPI_send_byte((uint8_t)bytes[0]);
-		//SPI_send_byte((uint8_t)bytes[1]);
-		//SPI_send_byte((uint8_t)bytes[2]);
-		//SPI_send_byte((uint8_t)bytes[3]);
-		
-		if(steinhart > 40) {
-			SPI_send_byte((uint8_t)(0b11111111));
-			SPI_send_byte((uint8_t)(0b11111111));
-			SPI_send_byte((uint8_t)(0b11111111));
-			SPI_send_byte((uint8_t)(0b11111111));
-		}
-		else if(steinhart > 30) {
-			SPI_send_byte((uint8_t)(0b00000000));
-			SPI_send_byte((uint8_t)(0b11111111));
-			SPI_send_byte((uint8_t)(0b11111111));
-			SPI_send_byte((uint8_t)(0b11111111));
-		} else if (steinhart > 25) {
-			SPI_send_byte((uint8_t)(0b00000000));
-			SPI_send_byte((uint8_t)(0b00000000));
-			SPI_send_byte((uint8_t)(0b11111111));
-			SPI_send_byte((uint8_t)(0b11111111));
+		//reading = SERIESRESISTOR / reading;  // 10K / (1023/ADC - 1)		
+		for(int i=0;i<SAMPLING;i++) 
+			for(int j=0; j<4;j++)
+				res_v[j] += RES_VALUE / 
+					((1023 / (adc_read(ADC_IDs[j]))) - 1);
 			
-		} else if (steinhart > 20) {
-			SPI_send_byte((uint8_t)(0b00000000));
-			SPI_send_byte((uint8_t)(0b00000000));
-			SPI_send_byte((uint8_t)(0b00000000));
-			SPI_send_byte((uint8_t)(0b11111111));
+		// Test if ADC samples		
+		for (int i = 0; i < 4; i++) {			
+			if(res_v[i]/SAMPLING > Max_Resistance) Max_Resistance = res_v[i]/SAMPLING;
+			if(~res_v[i]) PORTC ^= 0b00000001; // Indicate fault of reading				
 			
-		} else {
-			SPI_send_byte((uint8_t)(0b00000000));
-			SPI_send_byte((uint8_t)(0b00010000));
-			SPI_send_byte((uint8_t)(0b00010000));
-			SPI_send_byte((uint8_t)(0b00000000));
-		}
+			temp[i] = DecToBin(HC595_CalcTemp(res_v[i]/SAMPLING));	
+			
+			// Send to SPI to see
+			SPI_send_byte((uint8_t)(temp[i] >> 8));
+			SPI_send_byte((uint8_t)temp[i]);	
+			_delay_us(50);
+		}			
+		
 		
 		//SPI_send_byte(steinhart3);
 		//SensorTemp[16+i] = 0b00001111;
