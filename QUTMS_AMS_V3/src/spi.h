@@ -140,5 +140,6 @@ void spi_init(uint8_t clkRate0, uint8_t clkRate1);
 uint8_t spi_send_byte(uint8_t data);
 void spi_transfer_buffer(uint8_t *buf, uint8_t count);
 uint16_t spi_transfer_16(uint16_t data);
+void spi_disable(void);
 
 #endif /* SPI_H_ */
