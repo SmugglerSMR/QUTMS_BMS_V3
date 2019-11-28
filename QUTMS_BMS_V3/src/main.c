@@ -154,8 +154,10 @@ int main (void)
 	MCP2517_init();
 	// Initialize MAX14920 micro controller
 	MAX14920_Clear_SPI_messages();
-	MAX14920_Enable();
+	
+	//MAX14920_Enable();
 	MAX14920_EnableHoldPhase(false);
+	MAX14920_SPI_message.spiLOPW = 1;
 		
 	// Loop forever for checks
 	double overallVoltage = 0.0;
@@ -168,7 +170,7 @@ int main (void)
 	AMU_BOARD_DATA[3] = 0x02;
 	AMU_BOARD_DATA[4] = 0x04;
 	
-	MCP2517_transmitMessage(CAN_ID_PDM, 5, AMU_BOARD_DATA);
+	//MCP2517_transmitMessage(CAN_ID_PDM, 5, AMU_BOARD_DATA);
 	while(1) {
 		//MAX14920_ReadAllCellsVoltage();
 		_delay_ms(50);
@@ -199,14 +201,14 @@ int main (void)
 		//MCP2517_transmitMessage(CAN_ID_AMU, 5, AMU_BOARD_DATA);
 		//_delay_ms(50);
 		//MCP2517_recieveMessage(&receiveID, &numDataBytes, data);
-		MCP2517_recieveMessage(&receiveID, &numDataBytes, data);
-		if(receiveID == CAN_ID_AMU >> 18) {	
-			Toggle_LED(6,1000,1);
-			Toggle_LED(4,1000,1);
-			//SPI_send_byte(0b11111111);SPI_send_byte(0b11111111);SPI_send_byte(0b11111111);
-			
-			_delay_ms(50);
-		}
+		//MCP2517_recieveMessage(&receiveID, &numDataBytes, data);
+		//if(receiveID == CAN_ID_AMU >> 18) {	
+			//Toggle_LED(6,1000,1);
+			//Toggle_LED(4,1000,1);
+			////SPI_send_byte(0b11111111);SPI_send_byte(0b11111111);SPI_send_byte(0b11111111);
+			//
+			//_delay_ms(50);
+		//}
 		//MCP2517_transmitMessage(CAN_ID_AMU, 5, AMU_BOARD_DATA);
 		Toggle_LED(7, 1000,1);
 	}
