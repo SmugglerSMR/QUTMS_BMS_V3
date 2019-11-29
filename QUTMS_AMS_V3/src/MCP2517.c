@@ -232,6 +232,7 @@ void MCP2517_init(uint8_t CAN_CS) {
 	if(mode != MCP2517_CLASSIC_MODE) {
 		//LED_A_ON;
 		//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
+		spi_send_byte(0b00000001);
 	}
 	
 	//// Initialise and test RAM

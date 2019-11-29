@@ -142,6 +142,7 @@ void HC595PW_CD74HCT_send_read(void) {
 	uint16_t res_v[4] = {0};
 	uint16_t temp[4] = {0};
 	Max_Resistance = 0;
+	SPI_send_byte(0b11110000);
 	for(int i=0;i<OVERALL_MESSAGE_PAIRS;i++){
 		//Write the data to HC595
 		//HC595PW_reg_write(sensor_pattern[i]);
@@ -164,8 +165,8 @@ void HC595PW_CD74HCT_send_read(void) {
 			if(res_v[i]/SAMPLING > Max_Resistance) Max_Resistance = res_v[i]/SAMPLING;
 			if(~res_v[i]) PORTC ^= 0b00000001; // Indicate fault of reading				
 			
-			temp[i] = DecToBin(HC595_CalcTemp(res_v[i]/SAMPLING));	
-			
+			//temp[i] = DecToBin(HC595_CalcTemp(res_v[i]/SAMPLING));	
+			temp[i] = HC595_CalcTemp(res_v[i]/SAMPLING);	
 			// Send to SPI to see
 			SPI_send_byte((uint8_t)(temp[i] >> 8));
 			SPI_send_byte((uint8_t)temp[i]);	

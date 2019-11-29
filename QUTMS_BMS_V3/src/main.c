@@ -48,11 +48,11 @@ void IO_init(void);
 void Toggle_LED(int id, int delay, int times);
 uint16_t DecToBin(float nn);
 
-extern uint16_t CellVoltages[10];
-extern uint16_t OveralVoltage;
-extern uint16_t Max_Resistance;
-extern uint16_t AverageCellVoltage;
-extern uint8_t BMS_BOARD_DATA[5];
+//static uint16_t CellVoltages[10];
+//extern uint16_t OveralVoltage;
+//extern uint16_t Max_Resistance;
+//extern uint16_t AverageCellVoltage;
+
 
 void IO_init(void) {
 	// Initialize LEDs
@@ -146,10 +146,9 @@ int main (void)
 	// Initialize MAX14920 micro controller
 	MAX14920_Clear_SPI_messages();
 	MAX14920_Enable();
-	MAX14920_EnableHoldPhase(false);
 	// Perform Diagnostics
 	MAX14920_PerformDiagnosticsFirst();
-	MAX14920_PerformDiagnosticsSecond();
+	//MAX14920_PerformDiagnosticsSecond();
 	
 	// CAN MEssage
 	MCP2517_init();
@@ -167,11 +166,11 @@ int main (void)
 		//////////////////////////////////////////
 		// MAX14920  - Cell Manipulations
 		// Do not read voltage during Cell balancing at all for now
-		if(~MAX14920_SPI_message.spiBalanceC01_C08 && ~MAX14920_SPI_message.spiBalanceC01_C08) {
+		//if(~MAX14920_SPI_message.spiBalanceC01_C08 && ~MAX14920_SPI_message.spiBalanceC01_C08) {
 			MAX14920_ReadAllCellsVoltage();
 			_delay_ms(50);
 			OveralVoltage = MAX14920_ReadCellVoltage(0);
-		}
+		//}
 		
 		
 		// Report fault on any of the cells
@@ -206,6 +205,7 @@ int main (void)
 			PORTD ^= 0b00000001;
 		}
 		
+		cycle++;
 		if(cycle >=200)
 			cycle = 0;
 		

@@ -43,9 +43,11 @@ int main (void)
 	uint32_t receiveID;
 	uint8_t numDataBytes;
 	
-	MCP2517_transmitMessage(CAN_ID_BMS, 5, AMS_BOARD_DATA, CAN_CS_0);
-	_delay_ms(500);
+	
 	while(1) {
+		MCP2517_transmitMessage(CAN_ID_BMS, 5, AMS_BOARD_DATA, CAN_CS_0);
+		MCP2517_transmitMessage(CAN_ID_BMS, 5, AMS_BOARD_DATA, CAN_CS_1);
+		_delay_ms(500);
 		//	spi_send_byte(0b00011000);
 		//CAN_CS=CAN_CS_A;
 		
@@ -70,6 +72,14 @@ int main (void)
 		if(receiveID == CAN_ID_AMS >> 18) {
 			//PORTC ^= 0b00001000;
 			spi_send_byte(0b11111111);spi_send_byte(0b11111111);spi_send_byte(0b11111111);
+			_delay_ms(50);
+		}
+		_delay_ms(20);
+		
+		MCP2517_recieveMessage(&receiveID, &numDataBytes, data, CAN_CS_1);
+		if(receiveID == CAN_ID_AMS >> 18) {
+			//PORTC ^= 0b00001000;
+			spi_send_byte(0b11111111);spi_send_byte(0b00000000);spi_send_byte(0b11111111);
 			_delay_ms(50);
 		}
 		_delay_ms(20);

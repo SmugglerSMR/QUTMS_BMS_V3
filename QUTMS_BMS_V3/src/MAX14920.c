@@ -78,6 +78,7 @@ void MAX14920_Enable(void) {
 	SET_BIT(MAX14920_PORT_EN, MAX14920_PIN_EN);
 	_delay_ms(1+8);	//+8for calibration
 	// fIRST 8 BIT NEVER GETS SEND
+	MAX14920_SPI_message.spiSMPLB = 1;
 	MAX14920_reg_write();
 	
 	while(status&(MAX14920_SPI_output.spiChipStatus)) {
@@ -114,7 +115,7 @@ void MAX14920_EnableHoldPhase(bool sample) {
 }
 uint16_t MAX14920_ReadData(void) {
 	// In sample phase ADC = Vp/12, Vp = 30.0, 
-	double Vin = 3.3;
+	uint16_t Vin = 5;
 	uint16_t voltage = 0; 
 	//Getting ADC value
 	uint16_t ADC_v = adc_read(6);
@@ -208,6 +209,9 @@ void MAX14920_PerformDiagnosticsFirst(void) {
 	for(int i=0;i<MAX14920_CELL_NUMBER-1;i++)
 		if(CellVoltages[i] < 1.2)
 			SPI_send_byte(i);
+	MAX14920_SPI_message.spiDIAG = 0;
+	MAX14920_EnableHoldPhase(true);
+	MAX14920_reg_write();
 }
 
 void MAX14920_PerformDiagnosticsSecond(void) {

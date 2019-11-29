@@ -176,6 +176,7 @@ void MCP2517_init(void) {
 	uint8_t mode = MCP2517_getMode();
 	if(mode != MCP2517_CONFIGURATION_MODE) {
 		PORTB ^= 0b00010000;
+		SPI_send_byte(0b11000011);
 		//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
 	}
 	//
@@ -187,6 +188,7 @@ void MCP2517_init(void) {
 	mode = MCP2517_getMode();
 	if(mode != MCP2517_CONFIGURATION_MODE) {
 		PORTB ^= 0b00010000;
+		SPI_send_byte(0b11000011);
 		//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
 	}
 	
@@ -232,9 +234,11 @@ void MCP2517_init(void) {
 	mode = MCP2517_getMode();
 	if(mode != MCP2517_CLASSIC_MODE) {
 		//LED_A_ON;
+		SPI_send_byte(0b11000011);
 		PORTB ^= 0b00010000;
 		//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
-	}	
+	}
+	SPI_send_byte(0b11111111);	
 }
 
 
