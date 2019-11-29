@@ -175,9 +175,13 @@ void MCP2517_init(void) {
 	// Check that chip is now in config mode
 	uint8_t mode = MCP2517_getMode();
 	if(mode != MCP2517_CONFIGURATION_MODE) {
-		PORTB ^= 0b00010000;
-		SPI_send_byte(0b11000011);
-		//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
+		while(1) {
+			PORTB ^= 0b00010000;
+			SPI_send_byte(0b11000011);
+			_delay_ms(300);
+			//uart0_transmit(MCP2517_MODE_SELECT_ERROR);	
+		}
+		
 	}
 	//
 	// Perform software reset
@@ -187,9 +191,12 @@ void MCP2517_init(void) {
 	// Check that chip has flipped
 	mode = MCP2517_getMode();
 	if(mode != MCP2517_CONFIGURATION_MODE) {
-		PORTB ^= 0b00010000;
-		SPI_send_byte(0b11000011);
-		//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
+		while(1) {
+			PORTB ^= 0b00010000;
+			SPI_send_byte(0b11000011);
+			_delay_ms(300);
+			//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
+		}
 	}
 	
 	// Configure the Bit Time registers: 250K/2M, 80% sample point
@@ -233,12 +240,15 @@ void MCP2517_init(void) {
 	_delay_ms(2);
 	mode = MCP2517_getMode();
 	if(mode != MCP2517_CLASSIC_MODE) {
-		//LED_A_ON;
-		SPI_send_byte(0b11000011);
-		PORTB ^= 0b00010000;
-		//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
+		while(1) {
+			PORTB ^= 0b00010000;
+			SPI_send_byte(0b11000011);
+			_delay_ms(300);
+			//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
+		}
 	}
 	SPI_send_byte(0b11111111);	
+	PORTD ^= 0b00000001;
 }
 
 

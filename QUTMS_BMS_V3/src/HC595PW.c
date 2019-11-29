@@ -166,7 +166,7 @@ void HC595PW_CD74HCT_send_read(void) {
 			if(~res_v[i]) PORTC ^= 0b00000001; // Indicate fault of reading				
 			
 			//temp[i] = DecToBin(HC595_CalcTemp(res_v[i]/SAMPLING));	
-			temp[i] = HC595_CalcTemp(res_v[i]/SAMPLING);	
+			temp[i] = (res_v[i]/SAMPLING);	
 			// Send to SPI to see
 			SPI_send_byte((uint8_t)(temp[i] >> 8));
 			SPI_send_byte((uint8_t)temp[i]);	

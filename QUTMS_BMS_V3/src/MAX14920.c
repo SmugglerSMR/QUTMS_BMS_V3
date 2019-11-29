@@ -162,7 +162,7 @@ void MAX14920_ReadAllCellsVoltage(void) {
 	AverageCellVoltage /= MAX14920_CELL_NUMBER-2;
 }
 
-#define BALANCING_THRESHOLD	0.2
+#define BALANCING_THRESHOLD	112
 void MAX14920_EnableLoadBalancer(bool enable) {
 	//average voltage out of others
 	float difference = 0.0;
@@ -207,7 +207,7 @@ void MAX14920_PerformDiagnosticsFirst(void) {
 	MAX14920_ReadAllCellsVoltage();
 	SPI_send_byte(0b10000001);
 	for(int i=0;i<MAX14920_CELL_NUMBER-1;i++)
-		if(CellVoltages[i] < 1.2)
+		if(CellVoltages[i] < 122)
 			SPI_send_byte(i);
 	MAX14920_SPI_message.spiDIAG = 0;
 	MAX14920_EnableHoldPhase(true);

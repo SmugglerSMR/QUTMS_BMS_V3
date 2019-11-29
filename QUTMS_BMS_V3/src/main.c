@@ -200,10 +200,12 @@ int main (void)
 		
 		MCP2517_recieveMessage(&receiveID, &numDataBytes, data);		
 		if(receiveID == CAN_ID_BMS >> 18) {
-			PORTD ^= 0b00000001;
+			PORTD ^= 0b00000001; //LED 6 blinks. Message receive
 			MCP2517_transmitMessage(CAN_ID_AMS, 5, BMS_BOARD_DATA);
 			_delay_ms(50);
 			PORTD ^= 0b00000001;
+			
+			// TODO: Think about message comparison
 		}
 		
 		cycle++;
