@@ -234,6 +234,12 @@
     <Compile Include="src\spi.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\UART.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\UART.h">
+      <SubType>compile</SubType>
+    </Compile>
     <None Include="src\asf.h">
       <SubType>compile</SubType>
     </None>

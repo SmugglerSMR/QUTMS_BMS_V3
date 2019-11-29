@@ -18,6 +18,7 @@
 
 #include "input.h"
 #include "spi.h"
+#include "UART.h"
 #include "MCP2517.h"
 #include "MCP2517_reg.h"
 #include "MCP2517_defines.h"
@@ -156,7 +157,7 @@ void MCP2517_testRAM(uint8_t CAN_CS) {
 		const uint32_t readBackValue = MCP2517_readReg32(0x400, CAN_CS);
 		if (readBackValue != i) {
 			spi_send_byte(0b11111111);
-			//uart0_transmit(MCP2517_RAM_ERROR); // Error code
+			uart0_transmit(MCP2517_RAM_ERROR); // Error code
 		}
 	}
 }
@@ -173,7 +174,7 @@ void MCP2517_init(uint8_t CAN_CS) {
 	uint8_t mode = MCP2517_getMode(CAN_CS);
 	if(mode != MCP2517_CONFIGURATION_MODE) {
 		//LED_A_ON;
-		//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
+		uart0_transmit(MCP2517_MODE_SELECT_ERROR);
 		spi_send_byte(0b11111111);
 	}
 	//
@@ -185,7 +186,7 @@ void MCP2517_init(uint8_t CAN_CS) {
 	mode = MCP2517_getMode(CAN_CS);
 	if(mode != MCP2517_CONFIGURATION_MODE) {
 		//LED_B_ON;
-		//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
+		uart0_transmit(MCP2517_MODE_SELECT_ERROR);
 		spi_send_byte(0b11111111);
 	}
 	
@@ -231,8 +232,8 @@ void MCP2517_init(uint8_t CAN_CS) {
 	mode = MCP2517_getMode(CAN_CS);
 	if(mode != MCP2517_CLASSIC_MODE) {
 		//LED_A_ON;
-		//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
-		spi_send_byte(0b00000001);
+		uart0_transmit(MCP2517_MODE_SELECT_ERROR);
+		spi_send_byte(0b11111111);
 	}
 	
 	//// Initialise and test RAM
@@ -378,8 +379,8 @@ uint8_t MCP2517_transmitMessage(uint32_t canMessageID, uint8_t numDataBytes, uin
 	
 	// Check if numDataBytes > 8
 	if (numDataBytes > 8) {
-		//uart0_transmit(MCP2517_MESSAGE_SIZE_ERROR);
-		spi_send_byte(0b11111111);
+		uart0_transmit(MCP2517_MESSAGE_SIZE_ERROR);
+		//spi_send_byte(0b11111111);
 		return MCP2517_MESSAGE_SIZE_ERROR;
 	}
 	

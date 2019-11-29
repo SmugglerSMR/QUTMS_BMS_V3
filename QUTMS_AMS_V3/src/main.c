@@ -7,6 +7,7 @@
 #include <util/delay.h>
 
 #include "input.h"
+#include "UART.h"
 #include "SPI.h"
 #include "MCP2517.h"
 #include "macros.h"
@@ -23,7 +24,7 @@ int main (void)
 	WRITE_BIT(CAN_CS_PORT,CAN_CS_0,HIGH);
 	WRITE_BIT(CAN_CS_PORT,CAN_CS_1,HIGH);	
 	
-	
+	uart0_init(9600);
 	spi_init(1,0); //0,0
 	_delay_ms(50);
 	MCP2517_init(CAN_CS_0);
@@ -69,8 +70,8 @@ int main (void)
 		//_delay_ms(50);
 		//}
 		MCP2517_recieveMessage(&receiveID, &numDataBytes, data, CAN_CS_0);
-		//if(receiveID == CAN_ID_PDM >> 18) {
-		if(receiveID == CAN_ID_PDM) {
+		if(receiveID == CAN_ID_PDM >> 18) {
+		//if(receiveID == CAN_ID_PDM) {
 			//PORTC ^= 0b00001000;
 			spi_send_byte((uint8_t)receiveID >> 24);
 			spi_send_byte((uint8_t)receiveID >> 16);
@@ -82,7 +83,7 @@ int main (void)
 		_delay_ms(20);
 		
 		MCP2517_recieveMessage(&receiveID, &numDataBytes, data, CAN_CS_1);
-		if(receiveID == CAN_ID_PDM) {
+		if(receiveID == CAN_ID_PDM >> 18) {
 			//PORTC ^= 0b00001000;
 			spi_send_byte((uint8_t)receiveID >> 24);
 			spi_send_byte((uint8_t)receiveID >> 16);
