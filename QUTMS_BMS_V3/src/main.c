@@ -157,7 +157,7 @@ int main (void)
 	// Loop forever for checks	
 	uint8_t cycle = 0;
 	uint8_t data[8] = {0};
-	uint32_t receiveID;
+	uint32_t receiveID = 0;
 	uint8_t numDataBytes;
 	
 	while(1) {
@@ -198,11 +198,17 @@ int main (void)
 		BMS_BOARD_DATA[4] = CellVoltages[0];	//Board functionality
 		BMS_BOARD_DATA[5] = cycle;	//Board functionality
 		
-		MCP2517_recieveMessage(&receiveID, &numDataBytes, data);		
-		if(receiveID == CAN_ID_BMS >> 18) {
+		MCP2517_recieveMessage(&receiveID, &numDataBytes, data);
+		_delay_ms(500);
+		SPI_send_byte((uint8_t)receiveID >> 24);
+		SPI_send_byte((uint8_t)receiveID >> 16);
+		SPI_send_byte((uint8_t)receiveID >> 8);
+		SPI_send_byte((uint8_t)receiveID);
+				
+		if(receiveID == CAN_ID_PDM >> 18) {
 			PORTD ^= 0b00000001; //LED 6 blinks. Message receive
 			MCP2517_transmitMessage(CAN_ID_AMS, 5, BMS_BOARD_DATA);
-			_delay_ms(50);
+			_delay_ms(5000);
 			PORTD ^= 0b00000001;
 			
 			// TODO: Think about message comparison

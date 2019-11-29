@@ -175,10 +175,12 @@ void MCP2517_init(void) {
 	// Check that chip is now in config mode
 	uint8_t mode = MCP2517_getMode();
 	if(mode != MCP2517_CONFIGURATION_MODE) {
-		while(1) {
+		int i=0;
+		while(i<3) {
 			PORTB ^= 0b00010000;
 			SPI_send_byte(0b11000011);
 			_delay_ms(300);
+			i++;
 			//uart0_transmit(MCP2517_MODE_SELECT_ERROR);	
 		}
 		
@@ -191,10 +193,12 @@ void MCP2517_init(void) {
 	// Check that chip has flipped
 	mode = MCP2517_getMode();
 	if(mode != MCP2517_CONFIGURATION_MODE) {
-		while(1) {
+		int i=0;
+		while(i<6) {
 			PORTB ^= 0b00010000;
 			SPI_send_byte(0b11000011);
 			_delay_ms(300);
+			i++;
 			//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
 		}
 	}
@@ -240,10 +244,12 @@ void MCP2517_init(void) {
 	_delay_ms(2);
 	mode = MCP2517_getMode();
 	if(mode != MCP2517_CLASSIC_MODE) {
-		while(1) {
+		int i=0;
+		while(i<9) {
 			PORTB ^= 0b00010000;
 			SPI_send_byte(0b11000011);
 			_delay_ms(300);
+			i++;
 			//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
 		}
 	}

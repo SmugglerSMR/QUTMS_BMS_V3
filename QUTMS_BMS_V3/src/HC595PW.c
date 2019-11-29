@@ -140,7 +140,7 @@ void HC595PW_CD74HCT_send_read(void) {
 	//SPI_send_byte((uint8_t)ADC_v);
 	int ADC_IDs[4] = {9,8,2,3};
 	uint16_t res_v[4] = {0};
-	uint16_t temp[4] = {0};
+	//uint16_t temp[4] = {0};
 	Max_Resistance = 0;
 	SPI_send_byte(0b11110000);
 	for(int i=0;i<OVERALL_MESSAGE_PAIRS;i++){
@@ -155,21 +155,27 @@ void HC595PW_CD74HCT_send_read(void) {
 		
 		//reading = (1023 / reading)  - 1;     // (1023/ADC - 1)
 		//reading = SERIESRESISTOR / reading;  // 10K / (1023/ADC - 1)		
-		for(int i=0;i<SAMPLING;i++) 
-			for(int j=0; j<4;j++)
-				res_v[j] += RES_VALUE / 
-					((1023 / (adc_read(ADC_IDs[j]))) - 1);
+		
+		// TODO: VARIABLE REDECLARATION. Sampeling removed.
+		// Combine loops
+		//for(int j=0;j<SAMPLING;j++) 
+		for(int k=0; k<4;k++)
+			res_v[k] = RES_VALUE / 
+				((1023 / (adc_read(ADC_IDs[k]))) - 1);
 			
 		// Test if ADC samples		
-		for (int i = 0; i < 4; i++) {			
-			if(res_v[i]/SAMPLING > Max_Resistance) Max_Resistance = res_v[i]/SAMPLING;
-			if(~res_v[i]) PORTC ^= 0b00000001; // Indicate fault of reading				
+		for (int j = 0; j < 4; j++) {			
+			if(res_v[j] > Max_Resistance) Max_Resistance = res_v[j];
+			if(~res_v[j]) PORTC ^= 0b00000001; // Indicate fault of reading				
 			
 			//temp[i] = DecToBin(HC595_CalcTemp(res_v[i]/SAMPLING));	
-			temp[i] = (res_v[i]/SAMPLING);	
+			//temp[j] = (res_v[j]);	
 			// Send to SPI to see
-			SPI_send_byte((uint8_t)(temp[i] >> 8));
-			SPI_send_byte((uint8_t)temp[i]);	
+			//SPI_send_byte((uint8_t)(temp[j] >> 8));
+			//SPI_send_byte((uint8_t)temp[j]);	
+			//_delay_us(50);
+			SPI_send_byte((uint8_t)(res_v[j] >> 8));
+			SPI_send_byte((uint8_t)res_v[j]);
 			_delay_us(50);
 		}			
 		
