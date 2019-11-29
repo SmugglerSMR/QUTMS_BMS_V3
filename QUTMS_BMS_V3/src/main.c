@@ -195,7 +195,8 @@ int main (void)
 		BMS_BOARD_DATA[1] = OveralVoltage;	//Board functionality
 		BMS_BOARD_DATA[2] = AverageCellVoltage;	//Board functionality
 		BMS_BOARD_DATA[3] = Max_Resistance;	//Board functionality
-		BMS_BOARD_DATA[4] = cycle;	//Board functionality
+		BMS_BOARD_DATA[4] = CellVoltages[0];	//Board functionality
+		BMS_BOARD_DATA[5] = cycle;	//Board functionality
 		
 		MCP2517_recieveMessage(&receiveID, &numDataBytes, data);		
 		if(receiveID == CAN_ID_BMS >> 18) {
