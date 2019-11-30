@@ -74,5 +74,5 @@ void MCP2517_readMsgReceive(uint32_t *receiveID, uint8_t *numDataBytes, uint8_t 
 uint8_t MCP2517_transmitMessage(uint32_t canMessageID, uint8_t numDataBytes, uint8_t *messageData);
 void MCP2517_loadMsgTXFifo(MCP2517_TX_MSG_OBJ *txObj, uint8_t *payload, uint8_t numDataBytes);
 
-static uint8_t BMS_BOARD_DATA[5] = {0};
+static uint8_t BMS_BOARD_DATA[2] = {0};
 #endif /* MCP2517FD_H_ */

@@ -42,6 +42,8 @@ void HC595PW_Init_Registers(void) {
 	
 	// TODO: Test if DS must be low
 	WRITE_BIT(HC595PW_PORT_DS, HC595PW_PIN_DS, LOW);
+	
+	PORTB ^= 0b00010000;
 }
 
 //Sends a clock pulse on SH_CP || SCK line

@@ -127,7 +127,7 @@ uint16_t MAX14920_ReadData(void) {
 	SPI_send_byte((uint8_t)(voltage>>8));
 	SPI_send_byte((uint8_t)voltage);
 	
-	return voltage;
+	return ADC_v;
 }
 //Need a structure, to keep what balancing command has been sent already, as a global variable.
 double MAX14920_ReadCellVoltage(int cellN) {

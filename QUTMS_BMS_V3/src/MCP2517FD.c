@@ -26,7 +26,10 @@ void MCP2517FD_Init_Registers(void) {
 	DDRB |= ((1<<MCP2517FD_PIN_SCK)|
 			(1<<MCP2517FD_PIN_MOSI)|
 			~(1<<MCP2517FD_PIN_MISO)); // MISO as input
+			
 	DDRD |= ((1<<MCP2517FD_PIN_SS));
+	
+	DDRC |= (1<<MCP2517FD_PIN_CS);
 	//Enabling CAN ship
 	// Set SS as high to disable transmission.
 	WRITE_BIT(MCP2517FD_PORT_CS, MCP2517FD_PIN_CS, HIGH);
@@ -175,14 +178,14 @@ void MCP2517_init(void) {
 	// Check that chip is now in config mode
 	uint8_t mode = MCP2517_getMode();
 	if(mode != MCP2517_CONFIGURATION_MODE) {
-		int i=0;
-		while(i<3) {
-			PORTB ^= 0b00010000;
-			SPI_send_byte(0b11000011);
-			_delay_ms(300);
-			i++;
-			//uart0_transmit(MCP2517_MODE_SELECT_ERROR);	
-		}
+		//int i=0;
+		//while(i<3) {
+			//PORTB ^= 0b00010000;
+			//SPI_send_byte(0b11000011);
+			//_delay_ms(300);
+			//i++;
+			////uart0_transmit(MCP2517_MODE_SELECT_ERROR);	
+		//}
 		
 	}
 	//
@@ -193,14 +196,14 @@ void MCP2517_init(void) {
 	// Check that chip has flipped
 	mode = MCP2517_getMode();
 	if(mode != MCP2517_CONFIGURATION_MODE) {
-		int i=0;
-		while(i<6) {
-			PORTB ^= 0b00010000;
-			SPI_send_byte(0b11000011);
-			_delay_ms(300);
-			i++;
-			//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
-		}
+		//int i=0;
+		//while(i<6) {
+			//PORTB ^= 0b00010000;
+			//SPI_send_byte(0b11000011);
+			//_delay_ms(300);
+			//i++;
+			////uart0_transmit(MCP2517_MODE_SELECT_ERROR);
+		//}
 	}
 	
 	// Configure the Bit Time registers: 250K/2M, 80% sample point
@@ -243,15 +246,16 @@ void MCP2517_init(void) {
 	MCP2517_setMode(MCP2517_CLASSIC_MODE);
 	_delay_ms(2);
 	mode = MCP2517_getMode();
+	mode = MCP2517_getMode();
 	if(mode != MCP2517_CLASSIC_MODE) {
-		int i=0;
-		while(i<9) {
-			PORTB ^= 0b00010000;
-			SPI_send_byte(0b11000011);
-			_delay_ms(300);
-			i++;
-			//uart0_transmit(MCP2517_MODE_SELECT_ERROR);
-		}
+		//int i=0;
+		//while(i<9) {
+			//PORTB ^= 0b00010000;
+			//SPI_send_byte(0b11000011);
+			//_delay_ms(300);
+			//i++;
+			////uart0_transmit(MCP2517_MODE_SELECT_ERROR);
+		//}
 	}
 	SPI_send_byte(0b11111111);	
 	PORTD ^= 0b00000001;
@@ -352,7 +356,7 @@ uint8_t MCP2517_transmitMessage(uint32_t canMessageID, uint8_t numDataBytes, uin
 	// Check if numDataBytes > 8
 	if (numDataBytes > 8) {
 		//uart0_transmit(MCP2517_MESSAGE_SIZE_ERROR);
-		PORTB ^= 0b00010000;
+		//PORTB ^= 0b00010000;
 		return MCP2517_MESSAGE_SIZE_ERROR;
 	}
 	

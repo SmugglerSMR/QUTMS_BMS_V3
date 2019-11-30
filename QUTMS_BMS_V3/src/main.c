@@ -147,7 +147,7 @@ int main (void)
 	MAX14920_Clear_SPI_messages();
 	MAX14920_Enable();
 	// Perform Diagnostics
-	MAX14920_PerformDiagnosticsFirst();
+	//MAX14920_PerformDiagnosticsFirst();
 	//MAX14920_PerformDiagnosticsSecond();
 	
 	// CAN MEssage
@@ -159,17 +159,23 @@ int main (void)
 	uint8_t data[8] = {0};
 	uint32_t receiveID = 0;
 	uint8_t numDataBytes;
+	//PORTD ^= 0b00000001;
 	
+	
+	//LED4 - indicates success of MAX14920 init
+	//LED5 - indicates success of HC595PW init
+	//LED6 - indicates success of MCP2517FD init
 	while(1) {
-		Toggle_LED(7, 1000,1);
+		Toggle_LED(7, 150,1);
 		
 		//////////////////////////////////////////
 		// MAX14920  - Cell Manipulations
 		// Do not read voltage during Cell balancing at all for now
 		//if(~MAX14920_SPI_message.spiBalanceC01_C08 && ~MAX14920_SPI_message.spiBalanceC01_C08) {
-			MAX14920_ReadAllCellsVoltage();
-			_delay_ms(50);
-			OveralVoltage = MAX14920_ReadCellVoltage(0);
+		MAX14920_ReadAllCellsVoltage();
+			//_delay_ms(50);
+		OveralVoltage = MAX14920_ReadCellVoltage(0);
+		
 		//}
 		
 		
@@ -192,30 +198,39 @@ int main (void)
 		
 		//////////////////////////////////////////
 		// MCP2517FD - CANBUS		
-		BMS_BOARD_DATA[1] = OveralVoltage;	//Board functionality
-		BMS_BOARD_DATA[2] = AverageCellVoltage;	//Board functionality
-		BMS_BOARD_DATA[3] = Max_Resistance;	//Board functionality
-		BMS_BOARD_DATA[4] = CellVoltages[0];	//Board functionality
-		BMS_BOARD_DATA[5] = cycle;	//Board functionality
-		
+		BMS_BOARD_DATA[0] = OveralVoltage;	//Board functionality
+		BMS_BOARD_DATA[1] = AverageCellVoltage;	//Board functionality
+		BMS_BOARD_DATA[2] = Max_Resistance;	//Board functionality
+		//BMS_BOARD_DATA[4] = CellVoltages[0];	//Board functionality
+		//BMS_BOARD_DATA[5] = cycle;	//Board functionality
+		SPI_send_byte(0b11111111);
+		SPI_send_byte((uint8_t)(OveralVoltage>>8));
+		SPI_send_byte((uint8_t)OveralVoltage);
+		SPI_send_byte(0b11111111);
+		SPI_send_byte((uint8_t)(AverageCellVoltage>>8));
+		SPI_send_byte((uint8_t)AverageCellVoltage);
+		SPI_send_byte(0b11111111);
+		SPI_send_byte((uint8_t)(Max_Resistance>>8));
+		SPI_send_byte((uint8_t)Max_Resistance);
+		SPI_send_byte(0b11111111);
+		////_delay_ms(500);
+		////SPI_send_byte((uint8_t)receiveID >> 24);
+		////SPI_send_byte((uint8_t)receiveID >> 16);
+		////SPI_send_byte((uint8_t)receiveID >> 8);
+		////SPI_send_byte((uint8_t)receiveID);
+		//
 		MCP2517_recieveMessage(&receiveID, &numDataBytes, data);
-		_delay_ms(500);
-		SPI_send_byte((uint8_t)receiveID >> 24);
-		SPI_send_byte((uint8_t)receiveID >> 16);
-		SPI_send_byte((uint8_t)receiveID >> 8);
-		SPI_send_byte((uint8_t)receiveID);
-				
 		if(receiveID == CAN_ID_PDM >> 18) {
-			PORTD ^= 0b00000001; //LED 6 blinks. Message receive
-			MCP2517_transmitMessage(CAN_ID_AMS, 5, BMS_BOARD_DATA);
-			_delay_ms(5000);
-			PORTD ^= 0b00000001;
+			PORTC ^= 0b00000001;
+			MCP2517_transmitMessage(CAN_ID_AMS, 2, BMS_BOARD_DATA);
+			//_delay_ms(5000);
+			//Toggle_LED(5,1000,1);
 			
 			// TODO: Think about message comparison
 		}
-		
-		cycle++;
-		if(cycle >=200)
+		//MCP2517_transmitMessage(CAN_ID_AMS, 2, BMS_BOARD_DATA);	
+		//cycle++;
+		//if(cycle >=200)
 			cycle = 0;
 		
 	}
