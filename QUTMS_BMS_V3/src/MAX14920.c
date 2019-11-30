@@ -115,17 +115,16 @@ void MAX14920_EnableHoldPhase(bool sample) {
 }
 uint16_t MAX14920_ReadData(void) {
 	// In sample phase ADC = Vp/12, Vp = 30.0, 
-	uint16_t Vin = 5;
 	uint16_t voltage = 0; 
 	//Getting ADC value
 	uint16_t ADC_v = adc_read(6);
 	SPI_send_byte(0b00001111);
 	SPI_send_byte((uint8_t)(ADC_v>>8));
 	SPI_send_byte((uint8_t)ADC_v);
-	voltage = ADC_v * Vin / 1023*100;
-	_delay_us(100);
-	SPI_send_byte((uint8_t)(voltage>>8));
-	SPI_send_byte((uint8_t)voltage);
+	//voltage = ADC_v*1000 * 5.0 / 1023;
+	//_delay_us(100);
+	//SPI_send_byte((uint8_t)(voltage>>8));
+	//SPI_send_byte((uint8_t)voltage);
 	
 	return ADC_v;
 }
