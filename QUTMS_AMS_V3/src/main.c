@@ -21,10 +21,10 @@ uint8_t AMS_BOARD_DATA[5] = {0};
 void formatTempString (char *s, float temp) {
 	int t0,t0d;
 
-	t0= (int) (temp);
-	t0d= (int) ((temp*100)-(t0*100));
+	t0= (int) (temp/100);
+	t0d= (int) ((temp)-(t0*100));
 
-	snprintf (s, 4, "%d.%0.2d", t0, t0d);
+	snprintf (s, 4, "%d.%d", t0, t0d);
 }
 
 //NCP18XH103F03RB - Related variables
@@ -79,8 +79,8 @@ int main (void)
 	//PORTB &= ~(1<<PINB5);
 	//_delay_ms(1000);
 	/* Insert application code here, after the board has been initialized. */
-	AMS_BOARD_DATA[0] = 255;
-	AMS_BOARD_DATA[1] = 0x01;
+	AMS_BOARD_DATA[0] = 25;
+	AMS_BOARD_DATA[1] = 530;
 	//AMS_BOARD_DATA[2] = 0x02;
 	//AMS_BOARD_DATA[3] = 0x03;
 	//AMS_BOARD_DATA[4] = 0x04;
@@ -97,7 +97,7 @@ int main (void)
 	char st_Ebf[4] = "";
 	char st_int[5] = "";
 	float Eb_float = 0;
-	Eb_float = (float)AMS_BOARD_DATA[0] / 100;
+	Eb_float = (float)AMS_BOARD_DATA[1] / 100;
 	snprintf(st_int, 5, "%d", AMS_BOARD_DATA[0] );
 	//sprintf(st_Ebf, "%f", Eb_float);
 	formatTempString(st_Ebf, Eb_float);
