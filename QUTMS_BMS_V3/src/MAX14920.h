@@ -19,6 +19,7 @@
 #define MAX14920_PIN_SCK	PINB7
 #define MAX14920_PIN_MOSI	PINB1
 #define MAX14920_PIN_MISO	PINB0
+#define MAX14920_PIN_SS		PIND3		//***
 
 #define MAX14920_PORT_CS	PORTC
 #define MAX14920_PIN_CS		PINC3		//***
@@ -33,7 +34,13 @@
 
 #define MAX14920_CELL_NUMBER	12
 
-static uint16_t CellVoltages[10] = {0.0};
+#define SPI_SCK_PIN	7 //PB7
+#define SPI_MOSI_PIN	1 //PB1
+#define SPI_MISO_PIN	0 //PB0
+ 
+static uint16_t CellVoltages[10] = {0};
+static uint16_t OveralVoltage = 0;
+static uint16_t AverageCellVoltage = 0;
 
 void MAX14920_Init_Registers(void);	
 void MAX14920_Clear_SPI_messages(void);
@@ -46,8 +53,10 @@ uint16_t MAX14920_ReadData(void);
 double MAX14920_ReadCellVoltage(int cellN);
 void MAX14920_ReadAllCellsVoltage(void);
 void MAX14920_EnableLoadBalancer(bool enable);
+void MAX14920_PerformDiagnosticsFirst(void);
+void MAX14920_PerformDiagnosticsSecond(void);
 
-extern uint8_t DecToBin(double nn);
+extern uint16_t DecToBin(float nn);
 extern void Toggle_LED(int id, int delay, int times);
 
 #endif /* MAX14920_H_ */

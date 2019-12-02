@@ -1,15 +1,21 @@
-/*
- * SPI.h
- *
- * Created: 25.04.2019 19:10:04
- *  Author: julius
- */ 
-
+/*****************************************************************************
+* @file    firmware/QUTMS_HVBoard_Firmware/spi.h
+* @author  Zoe Goodward
+* @version V1.0.0
+* @date    2/08/2019 1:27:31 PM
+* @brief   This file declares the variables and functions that are used for
+*          SPI
+*****************************************************************************/
 
 #ifndef SPI_H_
 #define SPI_H_
 
-#include <avr/io.h>
+// Aliases for the different SPI chip pins used in the car
+#define SPI_SCK_PIN	7 //PB7
+#define SPI_MOSI_PIN	5 //PB5
+#define SPI_MISO_PIN   6 //PB6
+
+
 //////////////////////////////
 /*		  CONFIGURE			*/
 
@@ -128,29 +134,12 @@
 #error SPI: Clock rate (SPR0 & SPR1) in SPCR not set
 #endif
 
-struct MAX14920_SPI_SDI {
-	uint8_t spiBalanceC01_C08;
-	uint8_t spiBalanceC09_C16;
-	uint8_t spiEnableCellSelect;
-	uint8_t spiCell4bit;
-	uint8_t spiSMPLB;
-	uint8_t spiDIAG;
-	uint8_t spiLOPW;
-	
-};
-
-struct MAX14920_SPI_SDO {
-	uint8_t spiCellStatusC01_C08;
-	uint8_t spiCellStatusC09_C16;
-	uint8_t spiChipStatus;
-};
-
-static volatile struct MAX14920_SPI_SDI MAX14920_SPI_message;
-static volatile struct MAX14920_SPI_SDO MAX14920_SPI_output;
-
-void SPI_init(void);
-uint8_t SPI_send_byte(uint8_t c);
+// Functions
+void spi_init(uint8_t clkRate0, uint8_t clkRate1);
+//void spi_init(void);
+uint8_t spi_send_byte(uint8_t data);
 void spi_transfer_buffer(uint8_t *buf, uint8_t count);
+uint16_t spi_transfer_16(uint16_t data);
 void spi_disable(void);
 
 #endif /* SPI_H_ */

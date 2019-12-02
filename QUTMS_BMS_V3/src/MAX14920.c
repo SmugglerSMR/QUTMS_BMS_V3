@@ -22,7 +22,8 @@ void MAX14920_Init_Registers(void) {
 			~(1<<MAX14920_PIN_MISO)); // MISO as input
 	DDRC |= ((1<<MAX14920_PIN_SAMPL)|
 			 (1<<MAX14920_PIN_CS));
-	DDRD |= ((1<<MAX14920_PIN_EN));
+	DDRD |= ((1<<MAX14920_PIN_EN)|
+			(1<<MAX14920_PIN_SS));
 	
 	// Set SS as high to disable transmission.
 	WRITE_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS, HIGH);
@@ -77,6 +78,7 @@ void MAX14920_Enable(void) {
 	SET_BIT(MAX14920_PORT_EN, MAX14920_PIN_EN);
 	_delay_ms(1+8);	//+8for calibration
 	// fIRST 8 BIT NEVER GETS SEND
+	MAX14920_SPI_message.spiSMPLB = 1;
 	MAX14920_reg_write();
 	
 	while(status&(MAX14920_SPI_output.spiChipStatus)) {
@@ -84,6 +86,7 @@ void MAX14920_Enable(void) {
 		// Wait a bit before try again.
 		Toggle_LED(5, 100, 1);
 	}
+	PORTB ^= 0b00001000;	// Indicate success of MAX14920 LED4
 }
 
 void MAX14920_OffsetCallibration(void){
@@ -112,7 +115,7 @@ void MAX14920_EnableHoldPhase(bool sample) {
 }
 uint16_t MAX14920_ReadData(void) {
 	// In sample phase ADC = Vp/12, Vp = 30.0, 
-	double Vin = 3.3;
+	uint16_t Vin = 5;
 	uint16_t voltage = 0; 
 	//Getting ADC value
 	uint16_t ADC_v = adc_read(6);
@@ -124,7 +127,7 @@ uint16_t MAX14920_ReadData(void) {
 	SPI_send_byte((uint8_t)(voltage>>8));
 	SPI_send_byte((uint8_t)voltage);
 	
-	return voltage;
+	return ADC_v;
 }
 //Need a structure, to keep what balancing command has been sent already, as a global variable.
 double MAX14920_ReadCellVoltage(int cellN) {
@@ -154,13 +157,15 @@ double MAX14920_ReadCellVoltage(int cellN) {
 void MAX14920_ReadAllCellsVoltage(void) {
 	for (int cellN = 1; cellN<=MAX14920_CELL_NUMBER-2; cellN++) {
 		CellVoltages[cellN-1] = MAX14920_ReadCellVoltage(cellN);
+		AverageCellVoltage +=CellVoltages[cellN-1];
 	}
+	AverageCellVoltage /= MAX14920_CELL_NUMBER-2;
 }
 
-#define BALANCING_THRESHOLD	0.2
+#define BALANCING_THRESHOLD	112
 void MAX14920_EnableLoadBalancer(bool enable) {
 	//average voltage out of others
-	double difference = 0.0;
+	float difference = 0.0;
 	
 	for(int i = 0; i<10;i++) {
 		for(int j = 0; j<10;j++) {
@@ -182,4 +187,51 @@ void MAX14920_EnableLoadBalancer(bool enable) {
 			}
 		}		
 	}
+}
+
+void MAX14920_PerformDiagnosticsFirst(void) {
+	// Make sure that sampling is running
+	MAX14920_EnableHoldPhase(false);
+	MAX14920_SPI_message.spiDIAG = 1;
+	MAX14920_reg_write();
+	_delay_ms(550);
+	//MAX14920_SPI_message.spiDIAG = 0;	
+	MAX14920_EnableHoldPhase(true);
+	MAX14920_reg_write();
+	if(MAX14920_SPI_output.spiCellStatusC01_C08 ||
+		MAX14920_SPI_output.spiCellStatusC09_C16) {
+			// Report Failure
+			SPI_send_byte(0b01010101);
+			PORTB ^= 0b00010000;
+		}
+	MAX14920_ReadAllCellsVoltage();
+	SPI_send_byte(0b10000001);
+	for(int i=0;i<MAX14920_CELL_NUMBER-1;i++)
+		if(CellVoltages[i] < 122)
+			SPI_send_byte(i);
+	MAX14920_SPI_message.spiDIAG = 0;
+	MAX14920_EnableHoldPhase(true);
+	MAX14920_reg_write();
+}
+
+void MAX14920_PerformDiagnosticsSecond(void) {
+	// Make sure that sampling is running	
+	for(int i=0; i<MAX14920_CELL_NUMBER-2; i++) {
+		MAX14920_EnableHoldPhase(false);
+		if(i < 8) {
+			MAX14920_SPI_message.spiBalanceC01_C08 = 1<<(7-i);
+			MAX14920_SPI_message.spiBalanceC09_C16 = 0; 
+		} else {
+			MAX14920_SPI_message.spiBalanceC01_C08 = 0;
+			MAX14920_SPI_message.spiBalanceC09_C16 = 1<<(7-(i-9));
+		}		
+		MAX14920_reg_write();
+		_delay_us(300);//R_BAL*C_SAMPLE 3K*1nF
+		if(MAX14920_ReadCellVoltage(i+1) == 0){
+			SPI_send_byte(0b01010101);
+			PORTB ^= 0b00010000;
+			SPI_send_byte(i);
+		}
+	}
+	
 }

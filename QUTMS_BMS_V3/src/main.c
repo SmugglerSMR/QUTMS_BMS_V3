@@ -46,7 +46,13 @@
 
 void IO_init(void);
 void Toggle_LED(int id, int delay, int times);
-uint8_t DecToBin(double nn);
+uint16_t DecToBin(float nn);
+
+//static uint16_t CellVoltages[10];
+//extern uint16_t OveralVoltage;
+//extern uint16_t Max_Resistance;
+//extern uint16_t AverageCellVoltage;
+
 
 void IO_init(void) {
 	// Initialize LEDs
@@ -105,21 +111,7 @@ void Toggle_LED(int id, int delay, int times) {
 	}
 }
 
-///*
-	//Simply speaking - Morze code.
-	//Use it to chech if bits in register as expected.
-	//TOSO: Rewirete it to fit registers.
-//*/
-//void Morzanka(int code[]) {
-	//for (int i = 0; i < 8; i++) {
-		//if(code[i] == 0) Toggle_LED(4,500);
-		//else Toggle_LED(4,2000);
-		//Toggle_LED(4,200);
-	//}
-	//Toggle_LED(4,5000);
-//}
-
-uint8_t DecToBin(double nn) {
+uint16_t DecToBin(float nn) {
 	int a[8];
 	uint8_t byte = 0;
 	int n = (int) nn;	
@@ -149,29 +141,49 @@ int main (void)
 	ADC_init();
 	MAX14920_Init_Registers();
 	HC595PW_Init_Registers();
-	//MCP2517FD_Init_Registers();
+	MCP2517FD_Init_Registers();
 	
 	// Initialize MAX14920 micro controller
 	MAX14920_Clear_SPI_messages();
 	MAX14920_Enable();
-	MAX14920_EnableHoldPhase(false);
-		
-	// Loop forever for checks
-	uint16_t overallVoltage = 0;
+	// Perform Diagnostics
+	//MAX14920_PerformDiagnosticsFirst();
+	//MAX14920_PerformDiagnosticsSecond();
+	
+	// CAN MEssage
+	MCP2517_init();
+	BMS_BOARD_DATA[0] = 1;	//Board functionality	
+	
+	// Loop forever for checks	
+	uint8_t cycle = 0;
+	uint8_t data[8] = {0};
+	uint32_t receiveID = 0;
+	uint8_t numDataBytes;
+	//PORTD ^= 0b00000001;
+	
+	
+	//LED4 - indicates success of MAX14920 init
+	//LED5 - indicates success of HC595PW init
+	//LED6 - indicates success of MCP2517FD init
 	while(1) {
-		Toggle_LED(7, 1000,1);
-		//MAX14920_ReadAllCellsVoltage();
-		_delay_ms(50);
-		overallVoltage = MAX14920_ReadCellVoltage(2);
-		//for(int i=0; i<10; i++)
-			//SPI_send_byte((CellVoltages[i]));
-		//SPI_send_byte((overallVoltage));
+		Toggle_LED(7, 150,1);
+		
+		//////////////////////////////////////////
+		// MAX14920  - Cell Manipulations
+		// Do not read voltage during Cell balancing at all for now
+		//if(~MAX14920_SPI_message.spiBalanceC01_C08 && ~MAX14920_SPI_message.spiBalanceC01_C08) {
+		MAX14920_ReadAllCellsVoltage();
+			//_delay_ms(50);
+		OveralVoltage = MAX14920_ReadCellVoltage(0);
+		
+		//}
+		
 		
 		// Report fault on any of the cells
-		if(MAX14920_SPI_output.spiCellStatusC01_C08 ||
-		   MAX14920_SPI_output.spiCellStatusC09_C16) {
-			Toggle_LED(5,500,1);
-		}
+		//if(~MAX14920_SPI_output.spiCellStatusC01_C08 ||
+		   //~MAX14920_SPI_output.spiCellStatusC09_C16) {
+			//Toggle_LED(5,500,1);
+		//}
 		
 		// Toggle balancer
 		// TODO: Recheck values before playing with balancer
@@ -179,9 +191,47 @@ int main (void)
 		// This one only for charge.
 		//MAX14920_EnableLoadBalancer(true);
 		
-		// Start Temperature readings
+		//////////////////////////////////////////
+		// 74HC595PW - Start Temperature readings
+		// TODO: Record temperature for CAN
 		HC595PW_CD74HCT_send_read();
-		//for(int i=0; i<64;i++)
-			//SPI_send_byte(adc_read(2) >> 2);
+		
+		//////////////////////////////////////////
+		// MCP2517FD - CANBUS		
+		BMS_BOARD_DATA[0] = OveralVoltage;	//Board functionality
+		BMS_BOARD_DATA[1] = AverageCellVoltage;	//Board functionality
+		BMS_BOARD_DATA[2] = Max_Resistance;	//Board functionality
+		//BMS_BOARD_DATA[4] = CellVoltages[0];	//Board functionality
+		//BMS_BOARD_DATA[5] = cycle;	//Board functionality
+		SPI_send_byte(0b11111111);
+		SPI_send_byte((uint8_t)(OveralVoltage>>8));
+		SPI_send_byte((uint8_t)OveralVoltage);
+		SPI_send_byte(0b11111111);
+		SPI_send_byte((uint8_t)(AverageCellVoltage>>8));
+		SPI_send_byte((uint8_t)AverageCellVoltage);
+		SPI_send_byte(0b11111111);
+		SPI_send_byte((uint8_t)(Max_Resistance>>8));
+		SPI_send_byte((uint8_t)Max_Resistance);
+		SPI_send_byte(0b11111111);
+		////_delay_ms(500);
+		////SPI_send_byte((uint8_t)receiveID >> 24);
+		////SPI_send_byte((uint8_t)receiveID >> 16);
+		////SPI_send_byte((uint8_t)receiveID >> 8);
+		////SPI_send_byte((uint8_t)receiveID);
+		//
+		MCP2517_recieveMessage(&receiveID, &numDataBytes, data);
+		if(receiveID == CAN_ID_PDM >> 18) {
+			PORTC ^= 0b00000001;
+			MCP2517_transmitMessage(CAN_ID_AMS, 2, BMS_BOARD_DATA);
+			//_delay_ms(5000);
+			//Toggle_LED(5,1000,1);
+			
+			// TODO: Think about message comparison
+		}
+		//MCP2517_transmitMessage(CAN_ID_AMS, 2, BMS_BOARD_DATA);	
+		//cycle++;
+		//if(cycle >=200)
+			cycle = 0;
+		
 	}
 }

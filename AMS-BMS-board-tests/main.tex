@@ -1,0 +1,78 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{array}
+\usepackage{wrapfig}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage[margin=0.5in]{geometry}
+
+\title{Tables}
+
+\author{An example from Overleaf}
+
+\begin{document}
+%---------------------------------------------------------------------
+%Example of fixed column width and text long (array package required)
+\section*{AMS board test response}
+\begin{tabular}{ | m{1.3cm} | m{5cm} | m{4cm}| m{6cm}| m{0.6cm} | } 
+  \hline
+  \textbf{Test N}& \textbf{Description of a Test} & \textbf{LED/SPI/Value} & \textbf{Note/Fix} & \textbf{P/F}  \\ 
+  \hline
+  Test 1 & SPI first message & \textit{0xFF FF 98 7F FF} & \textit{Message send and responded} & P \\ 
+  \hline
+  Test 2 & Configuration Message  \newline  &  & &  \\ 
+  \hline
+  Test 3 & Message Stream  \newline  &  & &  \\ 
+  \hline
+  Test 4 & Reading/Writing process  \newline  &  & &  \\ 
+  \hline
+  Test 5 & Loops for a message send/receive  \newline  &  & &  \\ 
+  \hline
+  Test 6 & Receives message  \newline  &  & &  \\ 
+  \hline
+  Test 7 & Responses for a message  \newline  &  & &  \\ 
+  \hline
+  %Test 8 & Continue loop  \newline  &  & &  \\ 
+  %\hline
+\end{tabular}
+Note space :
+%\vspace{1.5cm}
+
+\section*{BMS board test response}
+\begin{tabular}{ | m{1.3cm} | m{5cm} | m{4cm}| m{6cm}| m{0.6cm} | } 
+  \hline
+  \textbf{Test N}& \textbf{Description of a Test} & \textbf{LED/SPI/Value} & \textbf{Note/Fix} & \textbf{P/F}  \\ 
+  \hline
+  Test 1 & Passed register init process & \textit{None} & \textit{Board continues} & P \\ 
+  \hline
+  Test 2 & MAX14920 Enabled &  & &  \\ 
+  \hline
+  Test 3 & Diagnostic One results, cell failures, voltages \newline  &  & &  \\ 
+  \hline
+  Test 4 & MCP2517 init phase (report fails)  \newline  &  & &  \\ 
+  \hline
+  Test 5 & Normal routine LED 7 blinks (Report abnormal)  \newline  &  & &  \\ 
+  \hline
+  Test 6 & Voltage Report results  \newline  &  & &  \\ 
+  \hline
+  Test 7 & Overall Voltage value  \newline  &  & &  \\ 
+  \hline
+  Test 8 & Temperature Readings outcome 1. Put resistance values  \newline  &  & &  \\ 
+  \hline
+  Test 9 & Temperature Readings outcome 2. Put resistance values  \newline  &  & &  \\ 
+  \hline
+  Test 10 & Temperature Readings outcome 3. Put resistance values  \newline  &  & &  \\ 
+  \hline
+  Test 11 & Temperature Readings outcome 4. Put resistance values  \newline  &  & &  \\ 
+  \hline
+  Test 12 & CAN Receive result \newline  &  & &  \\ 
+  \hline
+  Test 13 & CAN Message Sent \newline  &  & &  \\ 
+  \hline
+  Test 14 & Messages match to each other \newline  &  & &  \\ 
+  \hline
+  
+\end{tabular}
+Note space (Mark the board. Take good one. Report possible component damage. Obnormal behavior, heating. Programming voltage reading):
+\vspace{1.5cm}
+\end{document}
