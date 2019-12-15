@@ -37,6 +37,11 @@
 #define SAMPLING 15
 
 static uint16_t Max_Resistance = 10000;
+static uint16_t Min_Resistance = 10000;
+static uint16_t Average_Resistance = 10000;
+
+static uint16_t CellResistance_One[32] = {0};
+	static uint16_t CellResistance_Two[32] = {0};
 
 void HC595PW_Init_Registers(void);
 void HC595Pulse(void);

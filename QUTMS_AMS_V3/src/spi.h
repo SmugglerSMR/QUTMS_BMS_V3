@@ -11,10 +11,23 @@
 #define SPI_H_
 
 // Aliases for the different SPI chip pins used in the car
+#if (defined(__AVR_ATmega1284P__))
 #define SPI_SCK_PIN	7 //PB7
 #define SPI_MOSI_PIN	5 //PB5
 #define SPI_MISO_PIN   6 //PB6
+#elif (defined((__AVR_ATmega1280__))
+#define SPI_SCK_PIN	1 //PB1
+#define SPI_MOSI_PIN	2 //PB2
+#define SPI_MISO_PIN	3 //PB3
+#elif (defined((__AVR_ATmega64M1__))
+#define SPI_SCK_PIN	7 //PB7
+#define SPI_MOSI_PIN	1 //PB1
+#define SPI_MISO_PIN	0 //PB0
+#else
+#error Unknown processor
+#endif
 
+//64mM1, other SPI?
 
 //////////////////////////////
 /*		  CONFIGURE			*/
@@ -140,6 +153,5 @@ void spi_init(uint8_t clkRate0, uint8_t clkRate1);
 uint8_t spi_send_byte(uint8_t data);
 void spi_transfer_buffer(uint8_t *buf, uint8_t count);
 uint16_t spi_transfer_16(uint16_t data);
-void spi_disable(void);
 
 #endif /* SPI_H_ */
