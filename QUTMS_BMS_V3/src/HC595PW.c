@@ -137,15 +137,18 @@ float HC595_CalcTemp(uint16_t resistance) {
 	return steinhart;
 }
 void HC595PW_CD74HCT_send_read(void) {
+	Max_Resistance = 10000;
+	Min_Resistance = 10000;
+	Average_Resistance = 10000;
 	//Getting ADC value
 	//uint16_t ADC_SensorA, ADC_SensorB, ADC_SensorC, ADC_SensorD;
 	//SPI_send_byte((uint8_t)ADC_v);
-	int ADC_IDs[4] = {9,8,2,3};
+	int ADC_IDs[4] = {2,3};
 	uint16_t res_v[4] = {0};
 	//uint16_t temp[4] = {0};
 	Max_Resistance = 0;
 	SPI_send_byte(0b11110000);
-	for(int i=0;i<OVERALL_MESSAGE_PAIRS;i++){
+	for(int i=0;i<OVERALL_MESSAGE_PAIRS/2;i++){
 		//Write the data to HC595
 		//HC595PW_reg_write(sensor_pattern[i]);
 		HC595PW_reg_write(sensor_pattern[i]);
@@ -161,14 +164,17 @@ void HC595PW_CD74HCT_send_read(void) {
 		// TODO: VARIABLE REDECLARATION. Sampeling removed.
 		// Combine loops
 		//for(int j=0;j<SAMPLING;j++) 
-		for(int k=0; k<4;k++)
+		for(int k=0; k<2;k++)
 			res_v[k] = RES_VALUE / 
 				((1023 / (adc_read(ADC_IDs[k]))) - 1);
 			
 		// Test if ADC samples		
-		for (int j = 0; j < 4; j++) {			
+		for (int j = 0; j < 2; j++) {			
 			if(res_v[j] > Max_Resistance) Max_Resistance = res_v[j];
-			if(~res_v[j]) PORTC ^= 0b00000001; // Indicate fault of reading				
+			if(res_v[j] < Min_Resistance) Min_Resistance = res_v[j];
+			
+			//Use for Alarm line instead
+			//if(res_v[j]==0x00) PORTC ^= 0b00000001; // Indicate fault of reading				
 			
 			//temp[i] = DecToBin(HC595_CalcTemp(res_v[i]/SAMPLING));	
 			//temp[j] = (res_v[j]);	
@@ -181,7 +187,8 @@ void HC595PW_CD74HCT_send_read(void) {
 			_delay_us(50);
 		}			
 		
-		
+		CellResistance_One[i] = res_v[0];
+		CellResistance_Two[i] = res_v[1];
 		//SPI_send_byte(steinhart3);
 		//SensorTemp[16+i] = 0b00001111;
 		//SensorTemp[32+i] = adc_read(2) >> 2;

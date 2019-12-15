@@ -250,6 +250,12 @@
     <Compile Include="src\SPI.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\USART.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\USART.h">
+      <SubType>compile</SubType>
+    </Compile>
     <None Include="src\asf.h">
       <SubType>compile</SubType>
     </None>

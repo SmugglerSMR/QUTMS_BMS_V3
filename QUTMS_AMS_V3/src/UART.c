@@ -36,6 +36,12 @@ void uart0_transmit(uint8_t data) {
 	UDR0 = data;
 }
 
+void uart_transmit_str(unsigned char* str) {
+	while (*str) { // keep going until NULL terminator found
+		uart0_transmit(*str++);
+	}	
+}
+
 uint8_t uart0_receive(void) {
 	/* wait for data to be received */
 	while( !(UCSR0A & (1 << RXC0)) );

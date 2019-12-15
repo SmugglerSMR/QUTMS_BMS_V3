@@ -12,7 +12,7 @@
 #include <avr/io.h>
 #include "spi.h"
 #include "input.h"
-//#include "UART.h"
+#include "UART.h"
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //  SPI Functions

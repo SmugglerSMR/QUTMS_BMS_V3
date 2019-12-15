@@ -115,22 +115,21 @@ void MAX14920_EnableHoldPhase(bool sample) {
 }
 uint16_t MAX14920_ReadData(void) {
 	// In sample phase ADC = Vp/12, Vp = 30.0, 
-	uint16_t Vin = 5;
 	uint16_t voltage = 0; 
 	//Getting ADC value
 	uint16_t ADC_v = adc_read(6);
 	SPI_send_byte(0b00001111);
 	SPI_send_byte((uint8_t)(ADC_v>>8));
 	SPI_send_byte((uint8_t)ADC_v);
-	voltage = ADC_v * Vin / 1023*100;
-	_delay_us(100);
-	SPI_send_byte((uint8_t)(voltage>>8));
-	SPI_send_byte((uint8_t)voltage);
+	//voltage = ADC_v*1000 * 5.0 / 1023;
+	//_delay_us(100);
+	//SPI_send_byte((uint8_t)(voltage>>8));
+	//SPI_send_byte((uint8_t)voltage);
 	
 	return ADC_v;
 }
 //Need a structure, to keep what balancing command has been sent already, as a global variable.
-double MAX14920_ReadCellVoltage(int cellN) {
+uint16_t MAX14920_ReadCellVoltage(int cellN) {
 	
 	// Disable Sampler??
 	//SET_BIT(MAX14920_PORT_CS, PINC6);	
@@ -151,13 +150,23 @@ double MAX14920_ReadCellVoltage(int cellN) {
 	
 	MAX14920_EnableHoldPhase(false);
 	MAX14920_reg_write();
-	return MAX14920_ReadData();
+	return (uint16_t)(MAX14920_ReadData()*4.921/1023*1000);
 }
 
-void MAX14920_ReadAllCellsVoltage(void) {
+void MAX14920_ReadAllCellsVoltage(void) {	
+	//CellVoltages[10] = {0};
+	OveralVoltage = 0;
+	AverageCellVoltage = 0;
+	MaxCellVoltage = 0;
+	MinCellVoltage = 0;
+	
 	for (int cellN = 1; cellN<=MAX14920_CELL_NUMBER-2; cellN++) {
-		CellVoltages[cellN-1] = MAX14920_ReadCellVoltage(cellN);
+		CellVoltages[cellN-1] = MAX14920_ReadCellVoltage(cellN)*100;
 		AverageCellVoltage +=CellVoltages[cellN-1];
+		if(CellVoltages[cellN-1] > MaxCellVoltage)
+			MaxCellVoltage = CellVoltages[cellN-1];
+		if(CellVoltages[cellN-1] < MinCellVoltage)
+			MinCellVoltage = CellVoltages[cellN-1];
 	}
 	AverageCellVoltage /= MAX14920_CELL_NUMBER-2;
 }

@@ -5,6 +5,7 @@
  *	B.Talbot, September 2015
  *	L.Buckingham, September 2017
  *  M.Sadykov, November 2019
+ *	Zoe, December2019
  *  Queensland University of Technology
  */
 #ifndef MACROS_H_
@@ -27,6 +28,7 @@
 #define WRITE_BIT(reg, pin, value)	(reg) = (((reg) & ~(1 << (pin))) | ((value) << (pin)))
 #define BIT_VALUE(reg, pin)			(((reg) >> (pin)) & 1)
 #define BIT_IS_SET(reg, pin)		(BIT_VALUE((reg),(pin))==1)
+#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 
 /*
  *	Rudimentary math macros

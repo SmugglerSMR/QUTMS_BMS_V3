@@ -41,6 +41,8 @@
 static uint16_t CellVoltages[10] = {0};
 static uint16_t OveralVoltage = 0;
 static uint16_t AverageCellVoltage = 0;
+static uint16_t MaxCellVoltage = 0;
+static uint16_t MinCellVoltage = 0;
 
 void MAX14920_Init_Registers(void);	
 void MAX14920_Clear_SPI_messages(void);
@@ -50,7 +52,7 @@ void MAX14920_OffsetCallibration(void);
 void MAX14920_EnableHoldPhase(bool enable);
 
 uint16_t MAX14920_ReadData(void);
-double MAX14920_ReadCellVoltage(int cellN);
+uint16_t MAX14920_ReadCellVoltage(int cellN);
 void MAX14920_ReadAllCellsVoltage(void);
 void MAX14920_EnableLoadBalancer(bool enable);
 void MAX14920_PerformDiagnosticsFirst(void);
