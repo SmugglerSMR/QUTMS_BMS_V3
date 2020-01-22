@@ -134,7 +134,7 @@ int main (void)
 	{
 		// Fan control pin is BMS alarm
 		MCP2517_recieveMessage(&receiveID, &numDataBytes, data);
-		if(receiveID == CAN_RECEIVE_ID_PDM >> 18) { // Use PDM CAN packet
+		if(receiveID == CAN_RECEIVE_ID_SHUTDOWN >> 18) { // Use PDM CAN packet
 			/* Byte 0 */
 			//LED_A_ON;
 			if(CHECK_BIT(data[0], 6)) { // Shutdown -

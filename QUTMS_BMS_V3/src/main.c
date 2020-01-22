@@ -159,8 +159,8 @@ int main (void)
 	//MAX14920_PerformDiagnosticsSecond();
 	
 	// CAN MEssage
-	MCP2517_init();
-	BMS_BOARD_DATA[0] = 1;	//Board functionality	
+	//MCP2517_init();
+	//BMS_BOARD_DATA[0] = 1;	//Board functionality	
 	
 	// Loop forever for checks	
 	//uint8_t cycle = 0;
@@ -242,32 +242,32 @@ int main (void)
 		////BMS_BOARD_DATA[4] = CellVoltages[0];	//Board functionality
 		////BMS_BOARD_DATA[5] = cycle;	//Board functionality
 		//
-		SPI_send_byte(0b11111111);
-		SPI_send_byte((uint8_t)(OveralVoltage>>8));
-		SPI_send_byte((uint8_t)OveralVoltage);
-		SPI_send_byte(0b11111111);
-		SPI_send_byte((uint8_t)(AverageCellVoltage>>8));
-		SPI_send_byte((uint8_t)AverageCellVoltage);
-		SPI_send_byte(0b11111111);
-		SPI_send_byte((uint8_t)(Max_Resistance>>8));
-		SPI_send_byte((uint8_t)Max_Resistance);
-		SPI_send_byte(0b11111111);
-		SPI_send_byte((uint8_t)(Min_Resistance>>8));
-		SPI_send_byte((uint8_t)Min_Resistance);
-		SPI_send_byte(0b11111111);
-		_delay_ms(100);
-		SPI_send_byte(0b11111111);
-		SPI_send_byte(0b11111111);
-		SPI_send_byte(0b11111111);
+		//SPI_send_byte(0b11111111);
+		//SPI_send_byte((uint8_t)(OveralVoltage>>8));
+		//SPI_send_byte((uint8_t)OveralVoltage);
+		//SPI_send_byte(0b11111111);
+		//SPI_send_byte((uint8_t)(AverageCellVoltage>>8));
+		//SPI_send_byte((uint8_t)AverageCellVoltage);
+		//SPI_send_byte(0b11111111);
+		//SPI_send_byte((uint8_t)(Max_Resistance>>8));
+		//SPI_send_byte((uint8_t)Max_Resistance);
+		//SPI_send_byte(0b11111111);
+		//SPI_send_byte((uint8_t)(Min_Resistance>>8));
+		//SPI_send_byte((uint8_t)Min_Resistance);
+		//SPI_send_byte(0b11111111);
+		//_delay_ms(100);
+		//SPI_send_byte(0b11111111);
+		//SPI_send_byte(0b11111111);
+		//SPI_send_byte(0b11111111);
 		for(int i=0;i<10;i++) {
 			SPI_send_byte((uint8_t)CellVoltages[i] >>8);
 			SPI_send_byte((uint8_t)CellVoltages[i]);
 			if(CellVoltages[i] < 3100 ) WRITE_BIT(PORTC,PINC7,HIGH);
 			if(CellVoltages[i] > 3500 ) WRITE_BIT(PORTC,PINC7,HIGH);
 		}
-		SPI_send_byte(0b11111111);
-		SPI_send_byte(0b11111111);
-		SPI_send_byte(0b11111111);
+		//SPI_send_byte(0b11111111);
+		//SPI_send_byte(0b11111111);
+		//SPI_send_byte(0b11111111);
 		for(int i=0;i<32;i++) {
 			SPI_send_byte((uint8_t)CellResistance_One[i] >>8);
 			SPI_send_byte((uint8_t)CellResistance_One[i]);
