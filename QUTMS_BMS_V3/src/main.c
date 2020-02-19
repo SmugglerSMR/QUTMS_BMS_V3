@@ -132,6 +132,20 @@ uint16_t DecToBin(float nn) {
 	}
 	return byte;
 }
+char floatStr[100];
+char * FloatToStr(float x) {
+
+	char *tmpSign = (x < 0) ? "-" : "";
+	float tmpVal = (x < 0) ? -x : x;
+
+	int tmpInt1 = tmpVal;                  // Get the integer (678).
+	float tmpFrac = tmpVal - tmpInt1;      // Get fraction (0.0123).
+	int tmpInt2 = trunc(tmpFrac * 10000);  // Turn into integer (123).
+
+	sprintf (floatStr, "%s%d.%04d\n", tmpSign, tmpInt1, tmpInt2);
+	
+	return floatStr;
+}
 static volatile unsigned char ind_cell[19] = "\n\rIndividual Cell: ";
 int main (void)
 {
@@ -141,7 +155,7 @@ int main (void)
 	IO_init();
 	SPI_init();
 	ADC_init();
-	//USART_1_init();
+	USART_1_init();
 	
 	MAX14920_Init_Registers();
 	HC595PW_Init_Registers();
@@ -169,7 +183,7 @@ int main (void)
 	//uint8_t numDataBytes;
 	//PORTD ^= 0b00000001;
 	
-	//unsigned char temp_avr[19] = "\n\rAverage Voltage: ";
+	unsigned char temp_avr[19] = "\n\rAverage Voltage: ";
 	//unsigned char temp_max[19] = "\n\rMaximum Voltage: ";
 	//unsigned char temp_min[19] = "\n\rMinimum Voltage: ";
 	//unsigned char newline[2] = "\n\r";
@@ -206,7 +220,16 @@ int main (void)
 		////_delay_ms(50);
 		
 		OveralVoltage = MAX14920_ReadCellVoltage(0);
-		//at64c1_transmit_str("Overall Voltage: ");
+		//sprintf (floatStr, "Overall Voltage:  %d \n", OveralVoltage);
+		//at64c1_transmit_str(floatStr);
+		for(int i=0; i<10; i++) {
+			sprintf (floatStr, "CellVoltages %d:  %d \n", i, CellVoltages[i]);
+			at64c1_transmit_str(floatStr);
+			_delay_ms(50);
+		}
+		//sprintf (floatStr, "CellVoltages:  %d \n", CellVoltages[0]);
+		//at64c1_transmit_str(floatStr);
+		
 		//// Adding cellcs
 		//
 		////}

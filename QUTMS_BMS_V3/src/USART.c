@@ -11,15 +11,18 @@
 
 #include <avr/sfr_defs.h>
 
-#define BAUD 9600                        // Baud rate
+#define BAUD 115200                        // Baud rate
 
 
 // ********************************* Initialisation USART *********************************
 
 void USART_1_init() {
 	LINCR = (1 << LSWRES);
-	LINBRRH = (((F_CPU/BAUD)/16)-1)>>8;
-	LINBRRL = (((F_CPU/BAUD)/16)-1);
+	//LINBRRH = (((F_CPU/BAUD)/16)-1)>>8;
+	//LINBRRL = (((F_CPU/BAUD)/16)-1);
+	LINBRRH = 0;
+	LINBRRL = 51;
+	
 	LINBTR = (1 << LDISR) | (16 << LBT0);
 	LINCR = (1<<LENA)|(1<<LCMD2)|(1<<LCMD1)|(1<<LCMD0);
 }
