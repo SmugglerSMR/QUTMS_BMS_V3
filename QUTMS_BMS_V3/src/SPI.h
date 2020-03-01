@@ -145,8 +145,8 @@ struct MAX14920_SPI_SDO {
 	uint8_t spiChipStatus;
 };
 
-static volatile struct MAX14920_SPI_SDI MAX14920_SPI_message;
-static volatile struct MAX14920_SPI_SDO MAX14920_SPI_output;
+volatile struct MAX14920_SPI_SDI MAX14920_SPI_message;
+volatile struct MAX14920_SPI_SDO MAX14920_SPI_output;
 
 void SPI_init(void);
 uint8_t SPI_send_byte(uint8_t c);

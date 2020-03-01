@@ -38,8 +38,8 @@
 #define SPI_MOSI_PIN	1 //PB1
 #define SPI_MISO_PIN	0 //PB0
  
-static uint16_t CellVoltages[10] = {0};
-static uint16_t OveralVoltage = 0;
+
+static float OveralVoltage = 0;
 static uint16_t AverageCellVoltage = 0;
 static uint16_t MaxCellVoltage = 0;
 static uint16_t MinCellVoltage = 0;
@@ -52,8 +52,9 @@ void MAX14920_OffsetCallibration(void);
 void MAX14920_EnableHoldPhase(bool enable);
 
 uint16_t MAX14920_ReadData(void);
-uint16_t MAX14920_ReadCellVoltage(int cellN);
-void MAX14920_ReadAllCellsVoltage(void);
+//uint16_t MAX14920_ReadCellVoltage(int cellN);
+float MAX14920_ReadCellVoltage(int cellN);
+void MAX14920_ReadAllCellsVoltage(float CellVoltages[]);
 void MAX14920_EnableLoadBalancer(bool enable);
 void MAX14920_PerformDiagnosticsFirst(void);
 void MAX14920_PerformDiagnosticsSecond(void);
