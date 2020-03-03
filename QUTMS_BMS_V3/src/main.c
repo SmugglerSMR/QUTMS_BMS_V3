@@ -53,17 +53,6 @@ char * FloatToStr(float x);
 
 char floatStr[100];
 float CellVoltages[11] = {0};
-	
-#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
-#define BYTE_TO_BINARY(byte)  \
-(byte & 0x80 ? '1' : '0'), \
-(byte & 0x40 ? '1' : '0'), \
-(byte & 0x20 ? '1' : '0'), \
-(byte & 0x10 ? '1' : '0'), \
-(byte & 0x08 ? '1' : '0'), \
-(byte & 0x04 ? '1' : '0'), \
-(byte & 0x02 ? '1' : '0'), \
-(byte & 0x01 ? '1' : '0')
 
 int main (void)
 {
@@ -145,16 +134,8 @@ int main (void)
 		//}
 		////_delay_ms(50);
 		
-		//OveralVoltage = MAX14920_ReadCellVoltage(0);
-		//*vSign = (OveralVoltage < 0) ? "-" : "";
-		//vVal = (OveralVoltage < 0) ? -OveralVoltage : OveralVoltage;
-		//
-		//vInt1 = vVal;                  // Get the integer (678).
-		//vFrac = vVal - vInt1;      // Get fraction (0.0123).
-		//vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
-		//
-		//sprintf (floatStr, "Overal Voltage:  %d.%04d \n", vInt1, vInt2);
-		//at64c1_transmit_str(floatStr);
+		OveralVoltage = MAX14920_ReadCellVoltage(0);
+		
 		//_delay_us(50);
 		//printf();		
 		//sprintf (floatStr, "Overall Voltage:  %d \n", OveralVoltage);
@@ -180,10 +161,21 @@ int main (void)
 		vFrac = vVal - vInt1;      // Get fraction (0.0123).
 		vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
 		
-		sprintf (floatStr, "Overal Calculated Voltage:  %d.%04d \n\n", vInt1, vInt2);
+		sprintf (floatStr, "Overal Calculated Voltage:  %d.%04d \n", vInt1, vInt2);
 		at64c1_transmit_str(floatStr);
 		_delay_ms(50);
 		oVoltage = 0.0;
+		
+		*vSign = (OveralVoltage < 0) ? "-" : "";
+		vVal = (OveralVoltage < 0) ? -OveralVoltage : OveralVoltage;
+		
+		vInt1 = vVal;                  // Get the integer (678).
+		vFrac = vVal - vInt1;      // Get fraction (0.0123).
+		vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+		
+		sprintf (floatStr, "Overal Voltage:  %d.%04d \n\n", vInt1, vInt2);
+		at64c1_transmit_str(floatStr);
+		
 		//sprintf (floatStr, "CellVoltages:  %d \n", CellVoltages[0]);
 		//at64c1_transmit_str(floatStr);
 		
@@ -241,23 +233,22 @@ int main (void)
 		//SPI_send_byte(0b11111111);
 		
 		// Checking status
-		MAX14920_EnableHoldPhase(true);
-		MAX14920_reg_write();
 		_delay_us(10);
 		
-		sprintf (floatStr, "\nCellStatusC01_C08: "BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(MAX14920_SPI_output.spiCellStatusC01_C08));
-		at64c1_transmit_str(floatStr);
-		_delay_us(50);
-		sprintf (floatStr, "\nCellStatusC09_C16: "BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(MAX14920_SPI_output.spiCellStatusC09_C16));
-		at64c1_transmit_str(floatStr);
-		_delay_us(50);
-		sprintf (floatStr, "\nChipStatus: "BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(MAX14920_SPI_output.spiChipStatus));
-		at64c1_transmit_str(floatStr);
-		_delay_us(50);
-		sprintf (floatStr, "\n\n");
-		at64c1_transmit_str(floatStr);
-		MAX14920_EnableHoldPhase(false);
-		MAX14920_reg_write();
+		//sprintf (floatStr, "\nCellStatusC01_C08: ");
+		//at64c1_transmit_str(floatStr);
+		//at64c1_transmit_byte(MAX14920_SPI_output.spiCellStatusC01_C08);
+		//_delay_us(50);
+		//sprintf (floatStr, "\nCellStatusC09_C16: ");
+		//at64c1_transmit_str(floatStr);
+		//at64c1_transmit_byte(MAX14920_SPI_output.spiCellStatusC09_C16);
+		//_delay_us(50);
+		//sprintf (floatStr, "\nChipStatus: ");
+		//at64c1_transmit_str(floatStr);
+		//at64c1_transmit_byte(MAX14920_SPI_output.spiChipStatus);
+		//_delay_us(50);
+		//sprintf (floatStr, "\n\n");
+		//at64c1_transmit_str(floatStr);
 		
 		for(int i=0;i<10;i++) {
 			SPI_send_byte((uint8_t)CellVoltages[i] >>8);

@@ -8,9 +8,10 @@
 #include "macros.h"
 #include "SPI.h"
 #include "ADC.h"
+#include "USART.h"
 
 
-static const int cellTable[MAX14920_CELL_NUMBER] = {
+const uint8_t cellTable[MAX14920_CELL_NUMBER] = {
 	0b0000, 0b1000, 0b0100, 0b1100,	// Cells 1, 2, 3, 4
 	0b0010, 0b1010, 0b0110, 0b1110,	// Cells 5, 6, 7, 8
 	0b0001, 0b1001, 0b0101, 0b1101	// Cells 9,10,11,12
@@ -51,7 +52,8 @@ void MAX14920_Clear_SPI_messages(void) {
 	//MAX14920_SPI_output.spiChipStatus = 0b10101011;
 	MAX14920_SPI_output.spiChipStatus = 0b00000000;
 }
-void MAX14920_reg_write() {		
+void MAX14920_reg_write() {
+	
 	// unset to start transmission. Critical Section.
 	uint8_t spiStatus = 0;
 	spiStatus |= (
@@ -60,7 +62,10 @@ void MAX14920_reg_write() {
 		MAX14920_SPI_message.spiSMPLB<<2 |
 		MAX14920_SPI_message.spiDIAG<<1 |
 		MAX14920_SPI_message.spiLOPW
-	);	
+	);
+	
+	//at64c1_transmit_byte(spiStatus);
+		
 	WRITE_BIT(MAX14920_PORT_CS, MAX14920_PIN_CS, LOW);
 	MAX14920_SPI_output.spiCellStatusC01_C08 = SPI_send_byte(MAX14920_SPI_message.spiBalanceC01_C08);	
 	MAX14920_SPI_output.spiCellStatusC09_C16 = SPI_send_byte(MAX14920_SPI_message.spiBalanceC09_C16);	
@@ -112,7 +117,7 @@ void MAX14920_EnableHoldPhase(bool sample) {
 		//WRITE_BIT(MAX14920_SPI_message.spiControl, MAX14920_SMPLB_bit, 0);
 		MAX14920_SPI_message.spiSMPLB = 0;
 	}
-	_delay_us(50);
+	//_delay_us(50);
 }
 uint16_t MAX14920_ReadData(void) {
 	// In sample phase ADC = Vp/12, Vp = 30.0, 	
@@ -139,19 +144,20 @@ float MAX14920_ReadCellVoltage(int cellN) {
 	if(cellN == 0) {		// Read overall voltage		
 		MAX14920_SPI_message.spiEnableCellSelect = 0;
 		MAX14920_SPI_message.spiCell4bit = 0011;
-		MAX14920_reg_write();
-		_delay_us(60);
-		MAX14920_EnableHoldPhase(false);
-		MAX14920_reg_write();
-		voltage = MAX14920_ReadData()*1000;
+		//MAX14920_reg_write();
+		//_delay_us(50);
+		//MAX14920_EnableHoldPhase(false);
+		//MAX14920_reg_write();
+		voltage = MAX14920_ReadData()*65.021/1023+2.1;
 		
-	} else if(cellN > 0) {	// Read cell by cell
+	} else if(cellN > 0) {	// Read cell by cell		
 		MAX14920_SPI_message.spiEnableCellSelect = 1;
 		MAX14920_SPI_message.spiCell4bit = cellTable[cellN-1];
-		MAX14920_reg_write();
-		_delay_us(10);
+		//MAX14920_reg_write();
+		
 		MAX14920_EnableHoldPhase(false);
-		MAX14920_reg_write();
+		MAX14920_reg_write();		
+		_delay_us(5);
 		voltage = MAX14920_ReadData()*5.021/1023+1;
 	}						// No negative cell numbers
 	else return 0.0;

@@ -3,20 +3,12 @@
  *
  * Created: 05.12.2019 8:39:52
  *  Author: User
- */ 
-#include <avr/io.h>
-#include <util/delay.h>
-#include <avr/interrupt.h>
-#include <avr/pgmspace.h>
-
-#include <avr/sfr_defs.h>
-
-#define BAUD 115200                        // Baud rate
-
+ */
+#include "USART.h" 
 
 // ********************************* Initialisation USART *********************************
 
-void USART_1_init() {
+void USART_1_init(void) {
 	LINCR = (1 << LSWRES);
 	//LINBRRH = (((F_CPU/BAUD)/16)-1)>>8;
 	//LINBRRL = (((F_CPU/BAUD)/16)-1);
@@ -37,4 +29,30 @@ void USART_1_init() {
 void at64c1_transmit_str(unsigned char* str) {
 	while (*str) // keep going until NULL terminator found
 		at64c1_transmit(*str++);
+}
+
+//void at64c1_transmit_byte(uint8_t value) {
+	////char *vSign;
+	//float vVal;
+	//int vInt1;
+	//float vFrac;
+	//int vInt2;	
+	//char floatStr[100];
+	//
+	////*vSign = (value < 0) ? "-" : "";
+	//vVal = (value < 0) ? -value : value;
+	//
+	//vInt1 = vVal;                  // Get the integer (678).
+	//vFrac = vVal - vInt1;      // Get fraction (0.0123).
+	//vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+	//
+	//sprintf (floatStr, "Byte:  %d.%04d \n", vInt1, vInt2);
+	//at64c1_transmit_str(floatStr);	
+//}
+
+void at64c1_transmit_byte(uint8_t value) {
+	char floatStr[100];
+	sprintf (floatStr, "\r\nByte:  "BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(value));
+	at64c1_transmit_str(floatStr);
+	
 }
