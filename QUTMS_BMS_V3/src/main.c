@@ -140,6 +140,9 @@ int main (void)
 		//printf();		
 		//sprintf (floatStr, "Overall Voltage:  %d \n", OveralVoltage);
 		//at64c1_transmit_str(floatStr);
+		
+		//TODO: Print order is reversed. The last cell around 0.4V lower than actual value.
+		// Make an additional tolerance information
 		for(int i=0; i<10; i++) {
 			oVoltage += CellVoltages[i];
 			*vSign = (CellVoltages[i] < 0) ? "-" : "";
@@ -154,16 +157,16 @@ int main (void)
 			_delay_ms(50);
 		}		
 		
-		*vSign = (oVoltage < 0) ? "-" : "";
-		vVal = (oVoltage < 0) ? -oVoltage : oVoltage;
-		
-		vInt1 = vVal;                  // Get the integer (678).
-		vFrac = vVal - vInt1;      // Get fraction (0.0123).
-		vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
-		
-		sprintf (floatStr, "Overal Calculated Voltage:  %d.%04d \n", vInt1, vInt2);
-		at64c1_transmit_str(floatStr);
-		_delay_ms(50);
+		//*vSign = (oVoltage < 0) ? "-" : "";
+		//vVal = (oVoltage < 0) ? -oVoltage : oVoltage;
+		//
+		//vInt1 = vVal;                  // Get the integer (678).
+		//vFrac = vVal - vInt1;      // Get fraction (0.0123).
+		//vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+		//
+		//sprintf (floatStr, "Overal Calculated Voltage:  %d.%04d \n", vInt1, vInt2);
+		//at64c1_transmit_str(floatStr);
+		//_delay_ms(50);
 		oVoltage = 0.0;
 		
 		*vSign = (OveralVoltage < 0) ? "-" : "";

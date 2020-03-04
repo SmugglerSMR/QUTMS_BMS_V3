@@ -140,7 +140,7 @@ float MAX14920_ReadCellVoltage(int cellN) {
 	// Disable Sampler??
 	//SET_BIT(MAX14920_PORT_CS, PINC6);	
 	float voltage = 0.0;
-	MAX14920_EnableHoldPhase(true);
+	MAX14920_EnableHoldPhase(false);
 	if(cellN == 0) {		// Read overall voltage		
 		MAX14920_SPI_message.spiEnableCellSelect = 0;
 		MAX14920_SPI_message.spiCell4bit = 0011;
@@ -155,10 +155,10 @@ float MAX14920_ReadCellVoltage(int cellN) {
 		MAX14920_SPI_message.spiCell4bit = cellTable[cellN-1];
 		//MAX14920_reg_write();
 		
-		MAX14920_EnableHoldPhase(false);
+		MAX14920_EnableHoldPhase(true);
 		MAX14920_reg_write();		
 		_delay_us(5);
-		voltage = MAX14920_ReadData()*5.021/1023+1;
+		voltage = MAX14920_ReadData()*5.021/1023;
 	}						// No negative cell numbers
 	else return 0.0;
 	
