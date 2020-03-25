@@ -43,7 +43,8 @@
 #include "ADC.h"
 #include "MAX14920.h"
 #include "HC595PW.h"
-#include "MCP2517FD.h"
+#include "mcp2515.h"
+#include "can.h"
 #include "USART.h"
 
 void IO_init(void);
@@ -80,7 +81,23 @@ int main (void)
 	//MAX14920_PerformDiagnosticsSecond();
 	
 	// CAN MEssage
-	//MCP2517_init();
+	uint8_t result = MCP2515_init();
+	if (result == 0) {
+		//send_str(PSTR(
+		//"\r\nMCP2515 have initialised\r\n"
+		//));
+		if (mcp_loopback() == 0) {
+			//send_str(PSTR("\r\nMCP2515 test is successfull\r\n" ));
+			_delay_ms(2000);
+			//send_can();
+			//receive_can();
+		}
+	}
+	else {
+		//snprintf(buf, sizeof(buf), "Error ( %d ): cannot address the MCP2515!\r\n", res);
+		//send_buffer( buf );
+	}
+	
 	//BMS_BOARD_DATA[0] = 1;	//Board functionality	
 	
 	// Loop forever for checks	
@@ -112,6 +129,26 @@ int main (void)
 	int vInt2;
 	
 	float oVoltage = 0.0;
+	
+	CanMessage msg1;
+	CAN_RESULT res;
+	int isLed = 0;
+	int i, j, k;
+	
+	char buf[32];
+	// char s_buffer[15];
+
+	init_msg(&msg1);
+	msg1.id = 0x0A000000;
+	msg1.ext_id = 1;
+	msg1.rtr = 0;
+	msg1.dlc = 5;
+	msg1.dta[0] = 0x01;
+	msg1.dta[2] = 0x01;
+	msg1.dta[4] = 0x01;
+	i = 0;
+	j = 0;
+	k = 2;
 	
 	while(1) {
 		Toggle_LED(7, 500,1);
@@ -210,30 +247,52 @@ int main (void)
 		////}
 		//
 		////////////////////////////////////////////
-		//// MCP2517FD - CANBUS		
-		////BMS_BOARD_DATA[0] = OveralVoltage;	//Board functionality
-		////BMS_BOARD_DATA[1] = AverageCellVoltage;	//Board functionality
-		////BMS_BOARD_DATA[2] = Max_Resistance;	//Board functionality
-		////BMS_BOARD_DATA[4] = CellVoltages[0];	//Board functionality
-		////BMS_BOARD_DATA[5] = cycle;	//Board functionality
-		//
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte((uint8_t)(OveralVoltage>>8));
-		//SPI_send_byte((uint8_t)OveralVoltage);
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte((uint8_t)(AverageCellVoltage>>8));
-		//SPI_send_byte((uint8_t)AverageCellVoltage);
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte((uint8_t)(Max_Resistance>>8));
-		//SPI_send_byte((uint8_t)Max_Resistance);
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte((uint8_t)(Min_Resistance>>8));
-		//SPI_send_byte((uint8_t)Min_Resistance);
-		//SPI_send_byte(0b11111111);
-		//_delay_ms(100);
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte(0b11111111);
+		j++;
+		
+		if (j == k) {
+			j=0;
+			
+			if (isLed == 0) {
+				isLed = 1;
+				//send_str(PSTR("\r\nMCP2515: Try to send the message via CAN\r\n" ));
+				res = send_message(&msg1);
+				
+				if (res == CAN_OK) {
+					//send_str(PSTR("\r\nMCP2515: Message was written to the buffer\r\n" ));
+					
+					} else if (res == CAN_MCP_ERROR) {
+					//send_str(PSTR("Error ( MCP_ERROR ): could not send the message!\r\n\r\n" ));
+					} else if (res == CAN_ALL_TX_BUSY) {
+					//send_str(PSTR("Error ( ALL_TX_BUSY ): could not send the message!\r\n\r\n" ));
+					} else if (res == CAN_ERROR) {
+					//send_str(PSTR("Error ( ERROR ): could not send the message!\r\n\r\n" ));
+					} else if (res == CAN_NOT_FOUND) {
+					//send_str(PSTR("Error ( NOT_FOUND ): could not send the message!\r\n\r\n" ));
+					} else {
+					//snprintf(buf, sizeof(buf), "Error ( %d ): could not send the message!\r\n\r\n", res);
+					//send_buffer( buf );
+				}
+			}
+			
+			// r = recv_str(buf, sizeof(int16_t));
+			// snprintf(s_buffer, sizeof(s_buffer), "%d", r);
+			// send_buffer( s_buffer );
+			// if ( r == 0 ) {
+			// } else if ( r == 'w' ) {
+			//     isLed = 0;
+			//     send_str(PSTR("isLed 0 again"));
+			//     return;
+			// } else if ( r == 's' ) {
+			//     send_str(PSTR("switch to sniffer"));
+			//     return;
+			// }
+			
+			// i++;
+			// if (i>1000) i=0;
+			
+			//send_str(PSTR("\r\nMCP2515: Loop\r\n"));
+			
+		}
 		
 		// Checking status
 		_delay_us(10);
