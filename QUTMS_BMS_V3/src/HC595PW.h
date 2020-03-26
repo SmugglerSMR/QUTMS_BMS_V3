@@ -40,15 +40,13 @@ static uint16_t Max_Resistance = 10000;
 static uint16_t Min_Resistance = 10000;
 static uint16_t Average_Resistance = 10000;
 
-static uint16_t CellResistance_One[32] = {0};
-	static uint16_t CellResistance_Two[32] = {0};
 
 void HC595PW_Init_Registers(void);
 void HC595Pulse(void);
 void HC595Latch(void);
 void HC595PW_reg_write(uint8_t data);
 float HC595_CalcTemp(uint16_t resistance);
-void HC595PW_CD74HCT_send_read(void);
+void HC595PW_CD74HCT_send_read(uint16_t CellResistance_One[], uint16_t CellResistance_Two[]);
 
 extern uint16_t DecToBin(float nn);
 extern void Toggle_LED(int id, int delay, int times);

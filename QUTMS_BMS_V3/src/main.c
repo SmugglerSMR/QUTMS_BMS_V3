@@ -54,6 +54,9 @@ char * FloatToStr(float x);
 char floatStr[100];
 float CellVoltages[11] = {0};
 
+uint16_t CellResistance_One[32] = {0};
+uint16_t CellResistance_Two[32] = {0};
+
 int main (void)
 {
 	/* Insert system clock initialization code here (sysclk_init()). */
@@ -113,8 +116,10 @@ int main (void)
 	
 	float oVoltage = 0.0;
 	
+	int alarmV[10] = {0};
+	
 	while(1) {
-		Toggle_LED(7, 500,1);
+		Toggle_LED(7, 1000,1);
 		///////////
 		////snprintf(st_avr, 5, "%d", 17504);
 		////snprintf(st_max, 5, "%d", 10400);
@@ -143,7 +148,8 @@ int main (void)
 		
 		//TODO: Print order is reversed. The last cell around 0.4V lower than actual value.
 		// Make an additional tolerance information
-		for(int i=0; i<10; i++) {
+		int j = 0;
+		for(int i=9; i>=0; i--) {
 			oVoltage += CellVoltages[i];
 			*vSign = (CellVoltages[i] < 0) ? "-" : "";
 			vVal = (CellVoltages[i] < 0) ? -CellVoltages[i] : CellVoltages[i];
@@ -152,9 +158,14 @@ int main (void)
 			vFrac = vVal - vInt1;      // Get fraction (0.0123).
 			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).			
 			
-			sprintf (floatStr, "CellVoltages %d:  %d.%04d \n", i, vInt1, vInt2);
+			sprintf (floatStr, "\rCellVoltages %d:  %d.%04d and Alarm: %d \n", j, vInt1, vInt2, alarmV[i]);
 			at64c1_transmit_str(floatStr);
+			if(i == 4) {
+				sprintf (floatStr, "\n\n");
+				at64c1_transmit_str(floatStr);
+			}			
 			_delay_ms(50);
+			j++;
 		}		
 		
 		//*vSign = (oVoltage < 0) ? "-" : "";
@@ -176,7 +187,7 @@ int main (void)
 		vFrac = vVal - vInt1;      // Get fraction (0.0123).
 		vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
 		
-		sprintf (floatStr, "Overal Voltage:  %d.%04d \n\n", vInt1, vInt2);
+		sprintf (floatStr, "\r\n Overal Voltage:  %d.%04d \n\n", vInt1, vInt2);
 		at64c1_transmit_str(floatStr);
 		
 		//sprintf (floatStr, "CellVoltages:  %d \n", CellVoltages[0]);
@@ -193,16 +204,16 @@ int main (void)
 			////Toggle_LED(5,500,1);
 		////}
 		//
-		//// Toggle balancer
-		//// TODO: Recheck values before playing with balancer
-		//// TODO: Make sure that values for threshold is accurate first
-		//// This one only for charge.
-		////MAX14920_EnableLoadBalancer(true);
+		// Toggle balancer
+		// TODO: Recheck values before playing with balancer
+		// TODO: Make sure that values for threshold is accurate first
+		// This one only for charge.
+		MAX14920_EnableLoadBalancer(1);
 		//
 		////////////////////////////////////////////
 		//// 74HC595PW - Start Temperature readings
 		//// TODO: Record temperature for CAN
-		HC595PW_CD74HCT_send_read();
+		HC595PW_CD74HCT_send_read(CellResistance_One, CellResistance_Two);
 		////for(int i=0;i<32;i++) {
 			////at64c1_transmit_str("\n\rSensor Resistance: ");
 			////snprintf(st_volt, 5, "%d", CellVoltages[i]);
@@ -253,24 +264,82 @@ int main (void)
 		//sprintf (floatStr, "\n\n");
 		//at64c1_transmit_str(floatStr);
 		
-		for(int i=0;i<10;i++) {
-			SPI_send_byte((uint8_t)CellVoltages[i] >>8);
-			SPI_send_byte((uint8_t)CellVoltages[i]);
-			if(CellVoltages[i] < 3100 ) WRITE_BIT(PORTC,PINC1,LOW);
-			if(CellVoltages[i] > 3500 ) WRITE_BIT(PORTC,PINC1,LOW);
-		}		
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte(0b11111111);
-		for(int i=0;i<32;i++) {
-			SPI_send_byte((uint8_t)CellResistance_One[i] >>8);
-			SPI_send_byte((uint8_t)CellResistance_One[i]);
-			_delay_us(5);
-			SPI_send_byte((uint8_t)CellResistance_Two[i] >>8);
-			SPI_send_byte((uint8_t)CellResistance_Two[i]);
-			if(CellResistance_One[i] < 3849 ||
-			   CellResistance_Two[i] < 3849 ) WRITE_BIT(PORTC,PINC1,LOW);
+		int k = 0;
+		for(int i=9;i>=0;i--) {			
+			if(CellVoltages[i] < 2.9 ) {				
+				alarmV[i]++;
+				oVoltage += CellVoltages[i];
+				*vSign = (CellVoltages[i] < 0) ? "-" : "";
+				vVal = (CellVoltages[i] < 0) ? -CellVoltages[i] : CellVoltages[i];
+				
+				vInt1 = vVal;                  // Get the integer (678).
+				vFrac = vVal - vInt1;      // Get fraction (0.0123).
+				vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+				
+				sprintf (floatStr, "\r\n ALARM!! UnderVoltage %d:  %d.%04d \n\n", k, vInt1, vInt2);
+				at64c1_transmit_str(floatStr);
+			}
+			else if(CellVoltages[i] > 3.5 ) {
+				
+				alarmV[i]++;
+				oVoltage += CellVoltages[i];
+				*vSign = (CellVoltages[i] < 0) ? "-" : "";
+				vVal = (CellVoltages[i] < 0) ? -CellVoltages[i] : CellVoltages[i];
+				
+				vInt1 = vVal;                  // Get the integer (678).
+				vFrac = vVal - vInt1;      // Get fraction (0.0123).
+				vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+				
+				sprintf (floatStr, "\r\n ALARM!! OverVoltage %d:  %d.%04d \n\n", k, vInt1, vInt2);
+				at64c1_transmit_str(floatStr);
+			} else {
+				alarmV[i] = 0;
+			}			
+			k++;
+		}	
+		for(int i=0;i<10;i++) if(alarmV[i] > 3) {
+			sprintf (floatStr, "\r\n ALARM has been sent!!!");
+			at64c1_transmit_str(floatStr);
+			WRITE_BIT(PORTC,PINC1,LOW);	
 		}
+		//SPI_send_byte(0b11111111);
+		//SPI_send_byte(0b11111111);
+		//SPI_send_byte(0b11111111);
+
+		// Temperature
+
+		//for(int i=0;i<32;i++) {
+			//sprintf (floatStr, "\r\n Temperature One:  %d  and Two: %d \n\n", CellResistance_One[i], CellResistance_Two[i]);
+			//at64c1_transmit_str(floatStr);
+//
+			//if(CellResistance_One[i] < 3849 ||
+			   //CellResistance_Two[i] < 3849 ) {
+				//WRITE_BIT(PORTC,PINC1,LOW);
+//
+				////oVoltage += CellResistance_One[i];
+				////*vSign = (CellResistance_One[i] < 0) ? "-" : "";
+				////vVal = (CellResistance_One[i] < 0) ? -CellResistance_One[i] : CellResistance_One[i];
+				////
+				////vInt1 = vVal;                  // Get the integer (678).
+				////vFrac = vVal - vInt1;      // Get fraction (0.0123).
+				////vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+				////
+				////sprintf (floatStr, "\r\n ALARM!! Temperature threshold for One:  %d.%04d \n\n", vInt1, vInt2);
+				////at64c1_transmit_str(floatStr);
+////
+////
+				////oVoltage += CellResistance_Two[i];
+				////*vSign = (CellResistance_Two[i] < 0) ? "-" : "";
+				////vVal = (CellResistance_Two[i] < 0) ? -CellResistance_Two[i] : CellResistance_Two[i];
+				////
+				////vInt1 = vVal;                  // Get the integer (678).
+				////vFrac = vVal - vInt1;      // Get fraction (0.0123).
+				////vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+				////
+				////sprintf (floatStr, "\r\n ALARM!! Temperature threshold for Two:  %d.%04d \n\n", vInt1, vInt2);
+				////at64c1_transmit_str(floatStr);
+			//}
+		//}
 		
 		//if(BIT_IS_SET(PORTC, PINC1)) WRITE_BIT(PORTC,PINC1,HIGH);
 		

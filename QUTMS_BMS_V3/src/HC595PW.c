@@ -136,7 +136,7 @@ float HC595_CalcTemp(uint16_t resistance) {
 		PORTC ^= 0b00000001; // Indicate cold om LED3
 	return steinhart;
 }
-void HC595PW_CD74HCT_send_read(void) {
+void HC595PW_CD74HCT_send_read(uint16_t CellResistance_One[], uint16_t CellResistance_Two[]) {
 	Max_Resistance = 10000;
 	Min_Resistance = 10000;
 	Average_Resistance = 10000;
@@ -146,8 +146,7 @@ void HC595PW_CD74HCT_send_read(void) {
 	int ADC_IDs[4] = {2,3};
 	uint16_t res_v[4] = {0};
 	//uint16_t temp[4] = {0};
-	Max_Resistance = 0;
-	SPI_send_byte(0b11110000);
+	Max_Resistance = 0;	
 	for(int i=0;i<OVERALL_MESSAGE_PAIRS/2;i++){
 		//Write the data to HC595
 		//HC595PW_reg_write(sensor_pattern[i]);
@@ -181,9 +180,7 @@ void HC595PW_CD74HCT_send_read(void) {
 			// Send to SPI to see
 			//SPI_send_byte((uint8_t)(temp[j] >> 8));
 			//SPI_send_byte((uint8_t)temp[j]);	
-			//_delay_us(50);
-			SPI_send_byte((uint8_t)(res_v[j] >> 8));
-			SPI_send_byte((uint8_t)res_v[j]);
+			//_delay_us(50);			
 			_delay_us(50);
 		}			
 		

@@ -90,7 +90,7 @@ void MAX14920_Enable(void) {
 	while(status&(MAX14920_SPI_output.spiChipStatus)) {
 		MAX14920_reg_write();
 		// Wait a bit before try again.
-		Toggle_LED(5, 100, 1);
+		//Toggle_LED(5, 100, 1);
 	}
 	PORTB ^= 0b00001000;	// Indicate success of MAX14920 LED4
 }
@@ -135,6 +135,66 @@ uint16_t MAX14920_ReadData(void) {
 }
 //Need a structure, to keep what balancing command has been sent already, as a global variable.
 //uint16_t MAX14920_ReadCellVoltage(int cellN) {
+
+/*
+//  board # 1
+const float correctVoltage[11] = {   1.00, 
+									 1.13,     // 9
+									 0.91,     // 8 
+									 0.91,     // 7
+									 0.9,     // 6
+									 0.9,     // 5
+									 0.91,     // 4 
+									 0.91,     // 3
+									 0.91,     // 2
+									 1.9,    // 1
+									 0.71,     // 0
+									 1.0 };*/
+/*
+//  board # 5
+const float correctVoltage[11] = {  1.00,
+	1.79,     // 9
+	1.017,     // 8
+	1.057,     // 7
+	1.057,     // 6
+	1.017,     // 5
+	1.02,     // 4
+	1.014,     // 3
+	1.024,     // 2
+	1.024,    // 1
+	1.06,     // 0
+1.0 };
+*/
+// board # 2
+const float correctVoltage[11] = {
+	1.00,
+	2.99/2.7240,     // 9
+	2.99/3.6270,     // 8
+	2.99/3.6565,     // 7
+	2.99/3.6418,     // 6
+	2.99/3.69,     // 5
+	2.99/3.6418,     // 4
+	2.99/3.6516,     // 3
+	2.99/3.6418,    // 2
+	0.82,    // 1
+	2.99/3.7,     // 0
+1.0 };
+/*
+// board # 3
+const float correctVoltage[11] = {
+	1.00,
+	5.00,     // 9
+	0.712,     // 8
+	0.808,     // 7
+	0.8,     // 6
+	0.802,     // 5
+	0.81,     // 4
+	0.797,     // 3
+	0.806,    // 2
+	0.81,    // 1
+	0.844,     // 0
+1.0 };
+*/
 float MAX14920_ReadCellVoltage(int cellN) {
 	
 	// Disable Sampler??
@@ -148,7 +208,8 @@ float MAX14920_ReadCellVoltage(int cellN) {
 		//_delay_us(50);
 		//MAX14920_EnableHoldPhase(false);
 		//MAX14920_reg_write();
-		voltage = MAX14920_ReadData()*65.021/1023+2.1;
+		//voltage = MAX14920_ReadData()*65.021/1023+2.1;
+		voltage = MAX14920_ReadData()*65.021/1023;
 		
 	} else if(cellN > 0) {	// Read cell by cell		
 		MAX14920_SPI_message.spiEnableCellSelect = 1;
@@ -158,7 +219,11 @@ float MAX14920_ReadCellVoltage(int cellN) {
 		MAX14920_EnableHoldPhase(true);
 		MAX14920_reg_write();		
 		_delay_us(5);
+
 		voltage = MAX14920_ReadData()*5.021/1023;
+
+		voltage *= correctVoltage[cellN];
+
 	}						// No negative cell numbers
 	else return 0.0;
 	
@@ -187,11 +252,31 @@ void MAX14920_ReadAllCellsVoltage(float CellVoltages[]) {
 	AverageCellVoltage /= MAX14920_CELL_NUMBER-2;
 }
 
-//#define BALANCING_THRESHOLD	112
-//void MAX14920_EnableLoadBalancer(bool enable) {
-	////average voltage out of others
+#define BALANCING_THRESHOLD	112
+int delay = 0;
+void MAX14920_EnableLoadBalancer(int enable) {
+	//average voltage out of others
 	//float difference = 0.0;
-	//
+	//if(delay < 3) {
+		////PORTB = 0b00000000;
+		//MAX14920_SPI_message.spiBalanceC01_C08 = 0b00000000;
+		//MAX14920_SPI_message.spiBalanceC09_C16 = 0b00000000;
+		//delay++;
+	//} else if (delay > 6) {
+		//delay = 0;
+	//}
+	//else {
+		////PORTB = 0b00001000;
+		//MAX14920_SPI_message.spiBalanceC01_C08 = 0b11111111;
+		////MAX14920_SPI_message.spiBalanceC09_C16 = 0b00000011;
+		//MAX14920_SPI_message.spiBalanceC09_C16 = 0b11000000;
+		//delay++;
+	//}	
+	//MAX14920_SPI_message.spiBalanceC09_C16 = 0b00000011;
+	MAX14920_SPI_message.spiBalanceC01_C08 = 0b00000000;
+	MAX14920_SPI_message.spiBalanceC09_C16 = 0b00000000;
+
+	
 	//for(int i = 0; i<10;i++) {
 		//for(int j = 0; j<10;j++) {
 			//if(abs(CellVoltages[i] - CellVoltages[j]) > difference) {
@@ -212,7 +297,7 @@ void MAX14920_ReadAllCellsVoltage(float CellVoltages[]) {
 			//}
 		//}		
 	//}
-//}
+}
 
 //void MAX14920_PerformDiagnosticsFirst(void) {
 	//// Make sure that sampling is running

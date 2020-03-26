@@ -55,7 +55,7 @@ uint16_t MAX14920_ReadData(void);
 //uint16_t MAX14920_ReadCellVoltage(int cellN);
 float MAX14920_ReadCellVoltage(int cellN);
 void MAX14920_ReadAllCellsVoltage(float CellVoltages[]);
-void MAX14920_EnableLoadBalancer(bool enable);
+void MAX14920_EnableLoadBalancer(int enable);
 void MAX14920_PerformDiagnosticsFirst(void);
 void MAX14920_PerformDiagnosticsSecond(void);
 
