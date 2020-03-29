@@ -57,3 +57,25 @@ uint16_t adc_read(uint8_t channel)
 	SET_BIT(ADCSRA, ADIF); /* clear 'complete' status */	
 	return result;
 }
+
+int adc2_read(uint8_t channel)
+{
+	/* only change ADMUX bits signalling which channel to use */
+	channel = (ADMUX & 0xe0)|(channel & 0x1F);
+	ADMUX = channel;
+	
+	/* start conversion process */
+	SET_BIT(ADCSRA, ADSC);
+	
+	/* loop while the conversion is taking place */
+	//while(!(CHECK_BIT(ADCSRA, ADIF)));
+	while ( ADCSRA & (1 << ADSC) ) {}
+	
+	uint16_t result = 0;
+	result = ADCL; /* read ADCL, then ADCH --> order is important! */
+	result |= ((3 & ADCH) << 8);
+	////--> also not sure if this code is correct. other ADC examples return 'ADC' instead. //
+	SET_BIT(ADCSRA, ADIF); /* clear 'complete' status */
+	return result;
+	//return result;
+}

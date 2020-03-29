@@ -55,6 +55,9 @@ char * FloatToStr(float x);
 char floatStr[100];
 float CellVoltages[11] = {0};
 
+double CellResistance_One[16] = {0};
+double CellResistance_Two[16] = {0};
+
 int main (void)
 {
 	/* Insert system clock initialization code here (sysclk_init()). */
@@ -151,7 +154,8 @@ int main (void)
 	k = 2;
 	
 	while(1) {
-		Toggle_LED(7, 500,1);
+		//Toggle_LED(7, 500,1);
+		_delay_ms(500);
 		///////////
 		////snprintf(st_avr, 5, "%d", 17504);
 		////snprintf(st_max, 5, "%d", 10400);
@@ -239,7 +243,7 @@ int main (void)
 		////////////////////////////////////////////
 		//// 74HC595PW - Start Temperature readings
 		//// TODO: Record temperature for CAN
-		HC595PW_CD74HCT_send_read();
+		HC595PW_CD74HCT_send_read(CellResistance_One, CellResistance_Two);
 		////for(int i=0;i<32;i++) {
 			////at64c1_transmit_str("\n\rSensor Resistance: ");
 			////snprintf(st_volt, 5, "%d", CellVoltages[i]);
@@ -321,14 +325,32 @@ int main (void)
 		//SPI_send_byte(0b11111111);
 		//SPI_send_byte(0b11111111);
 		//SPI_send_byte(0b11111111);
-		for(int i=0;i<32;i++) {
-			SPI_send_byte((uint8_t)CellResistance_One[i] >>8);
-			SPI_send_byte((uint8_t)CellResistance_One[i]);
+		for(int i=0;i<16;i++) {
+			*vSign = (CellResistance_One[i] < 0) ? "-" : "";
+			vVal = (CellResistance_One[i] < 0) ? -CellResistance_One[i] : CellResistance_One[i];
+			
+			vInt1 = vVal;                  // Get the integer (678).
+			vFrac = vVal - vInt1;      // Get fraction (0.0123).
+			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+						
+			sprintf (floatStr, "Resistance 1:  %d.%04d \n\n", vInt1, vInt2);
+			at64c1_transmit_str(floatStr);
+			
+			*vSign = (CellResistance_Two[i] < 0) ? "-" : "";
+			vVal = (CellResistance_Two[i] < 0) ? -CellResistance_Two[i] : CellResistance_Two[i];
+			
+			vInt1 = vVal;                  // Get the integer (678).
+			vFrac = vVal - vInt1;      // Get fraction (0.0123).
+			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+			
+			sprintf (floatStr, "Resistance 2:  %d.%04d \n\n", vInt1, vInt2);
+			at64c1_transmit_str(floatStr);
+			
 			_delay_us(5);
-			SPI_send_byte((uint8_t)CellResistance_Two[i] >>8);
-			SPI_send_byte((uint8_t)CellResistance_Two[i]);
-			if(CellResistance_One[i] < 3849 ||
-			   CellResistance_Two[i] < 3849 ) WRITE_BIT(PORTC,PINC1,LOW);
+			
+			
+			//if(CellResistance_One[i] < 3849 ||
+			   //CellResistance_Two[i] < 3849 ) WRITE_BIT(PORTC,PINC1,LOW);
 		}
 		
 		//if(BIT_IS_SET(PORTC, PINC1)) WRITE_BIT(PORTC,PINC1,HIGH);
@@ -362,9 +384,9 @@ int main (void)
 
 void IO_init(void) {
 	// Initialize LEDs
-	DDRB = 0b00011000;	// LED-5 LED-4
-	DDRC = 0b00000001;	// LED-3 
-	DDRD = 0b00000011;	// LED 7 6
+	DDRB = 0b00000000;	// LED-5 LED-4
+	DDRC = 0b00000000;	// LED-3 
+	DDRD = 0b00000000;	// LED 7 6
 }
 
 /*

@@ -27,7 +27,7 @@
 #define HC595PW_PIN_SH	PINB7
 
 //NCP18XH103F03RB - Related variables
-#define RES_VALUE 10000
+#define RES_VALUE 10000.0
 #define THERMISTORNOMINAL 10000
 //+1.7K is the offset
 // temp. for nominal resistance (almost always 25 C)
@@ -40,15 +40,13 @@ static uint16_t Max_Resistance = 10000;
 static uint16_t Min_Resistance = 10000;
 static uint16_t Average_Resistance = 10000;
 
-static uint16_t CellResistance_One[32] = {0};
-	static uint16_t CellResistance_Two[32] = {0};
 
 void HC595PW_Init_Registers(void);
 void HC595Pulse(void);
 void HC595Latch(void);
 void HC595PW_reg_write(uint8_t data);
 float HC595_CalcTemp(uint16_t resistance);
-void HC595PW_CD74HCT_send_read(void);
+void HC595PW_CD74HCT_send_read(double CellResistance_One[], double CellResistance_Two[]);
 
 extern uint16_t DecToBin(float nn);
 extern void Toggle_LED(int id, int delay, int times);

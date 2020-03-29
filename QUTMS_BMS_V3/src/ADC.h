@@ -14,6 +14,7 @@
 void ADC_init(void);
 uint16_t ADC6_read(void);
 uint16_t adc_read(uint8_t channel);
+int adc2_read(uint8_t channel);
 
 
 #endif /* ADC_H_ */
