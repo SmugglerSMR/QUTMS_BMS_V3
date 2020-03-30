@@ -54,15 +54,19 @@ char * FloatToStr(float x);
 char floatStr[100];
 float CellVoltages[11] = {0};
 
-uint16_t CellResistance_One[32] = {0};
-uint16_t CellResistance_Two[32] = {0};
+float CellResistance_One[16] = {0};
+float CellResistance_Two[16] = {0};
+
+int cellTempCpomt = 0;
+float CellTemp_One[16] = {0};
+float CellTemp_Two[16] = {0};
 
 int main (void)
 {
 	/* Insert system clock initialization code here (sysclk_init()). */
 	// Initialize ATmega64M1 micro controller
 	//board_init();
-	IO_init();
+	//IO_init();
 	SPI_init();
 	ADC_init();
 	USART_1_init();
@@ -119,7 +123,8 @@ int main (void)
 	int alarmV[10] = {0};
 	
 	while(1) {
-		Toggle_LED(7, 1000,1);
+		//Toggle_LED(7, 200,1);
+		_delay_ms(500);
 		///////////
 		////snprintf(st_avr, 5, "%d", 17504);
 		////snprintf(st_max, 5, "%d", 10400);
@@ -148,26 +153,27 @@ int main (void)
 		
 		//TODO: Print order is reversed. The last cell around 0.4V lower than actual value.
 		// Make an additional tolerance information
-		int j = 0;
-		for(int i=9; i>=0; i--) {
-			oVoltage += CellVoltages[i];
-			*vSign = (CellVoltages[i] < 0) ? "-" : "";
-			vVal = (CellVoltages[i] < 0) ? -CellVoltages[i] : CellVoltages[i];
-			
-			vInt1 = vVal;                  // Get the integer (678).
-			vFrac = vVal - vInt1;      // Get fraction (0.0123).
-			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).			
-			
-			sprintf (floatStr, "\rCellVoltages %d:  %d.%04d and Alarm: %d \n", j, vInt1, vInt2, alarmV[i]);
-			at64c1_transmit_str(floatStr);
-			if(i == 4) {
-				sprintf (floatStr, "\n\n");
-				at64c1_transmit_str(floatStr);
-			}			
-			_delay_ms(50);
-			j++;
-		}		
-		
+
+		//int j = 0;
+		//for(int i=9; i>=0; i--) {
+			//oVoltage += CellVoltages[i];
+			//*vSign = (CellVoltages[i] < 0) ? "-" : "";
+			//vVal = (CellVoltages[i] < 0) ? -CellVoltages[i] : CellVoltages[i];
+			//
+			//vInt1 = vVal;                  // Get the integer (678).
+			//vFrac = vVal - vInt1;      // Get fraction (0.0123).
+			//vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).			
+			//
+			//sprintf (floatStr, "\rCellVoltages %d:  %d.%04d and Alarm: %d \n", j, vInt1, vInt2, alarmV[i]);
+			//at64c1_transmit_str(floatStr);
+			//if(i == 4) {
+				//sprintf (floatStr, "\n\n");
+				//at64c1_transmit_str(floatStr);
+			//}			
+			//_delay_ms(50);
+			//j++;
+		//}		
+		//
 		//*vSign = (oVoltage < 0) ? "-" : "";
 		//vVal = (oVoltage < 0) ? -oVoltage : oVoltage;
 		//
@@ -213,7 +219,7 @@ int main (void)
 		////////////////////////////////////////////
 		//// 74HC595PW - Start Temperature readings
 		//// TODO: Record temperature for CAN
-		HC595PW_CD74HCT_send_read(CellResistance_One, CellResistance_Two);
+		//HC595PW_CD74HCT_send_read(CellResistance_One, CellResistance_Two);
 		////for(int i=0;i<32;i++) {
 			////at64c1_transmit_str("\n\rSensor Resistance: ");
 			////snprintf(st_volt, 5, "%d", CellVoltages[i]);
@@ -302,44 +308,74 @@ int main (void)
 			at64c1_transmit_str(floatStr);
 			WRITE_BIT(PORTC,PINC1,LOW);	
 		}
+
 		//SPI_send_byte(0b11111111);
 		//SPI_send_byte(0b11111111);
 		//SPI_send_byte(0b11111111);
 
 		// Temperature
+		for(int i=0;i<16;i++){
+			CellTemp_One[i]	+= CellResistance_One[i];
+			CellTemp_Two[i]	+= CellResistance_Two[i];			
+		}
+		
+		for(int i=0;i<16;i++) {
+			
+			*vSign = (CellResistance_One[i] < 0) ? "-" : "";
+			vVal = (CellResistance_One[i] < 0) ? -CellResistance_One[i] : CellResistance_One[i];
+			
+			vInt1 = vVal;                  // Get the integer (678).
+			vFrac = vVal - vInt1;      // Get fraction (0.0123).
+			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+			
+			sprintf (floatStr, "\r\n Temperature One:  %d.%04d ", vInt1, vInt2);
 
-		//for(int i=0;i<32;i++) {
-			//sprintf (floatStr, "\r\n Temperature One:  %d  and Two: %d \n\n", CellResistance_One[i], CellResistance_Two[i]);
-			//at64c1_transmit_str(floatStr);
+
+			//sprintf (floatStr, "\r\n Temperature One:  %f  and Two: %f \n\n", CellResistance_One[i], CellResistance_Two[i]);
+			at64c1_transmit_str(floatStr);
+
+
+			*vSign = (CellResistance_Two[i] < 0) ? "-" : "";
+			vVal = (CellResistance_Two[i] < 0) ? -CellResistance_Two[i] : CellResistance_Two[i];
+			
+			vInt1 = vVal;                  // Get the integer (678).
+			vFrac = vVal - vInt1;      // Get fraction (0.0123).
+			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+			
+			sprintf (floatStr, "Temperature Two:  %d.%04d \n", vInt1, vInt2);
+			at64c1_transmit_str(floatStr);
+
+			CellTemp_One[i] = 0;
+			CellTemp_Two[i] = 0;
+			if(CellResistance_One[i] < 3849 ||
+				CellResistance_Two[i] < 3849 ) {
+				WRITE_BIT(PORTC,PINC1,LOW);
+
+				//oVoltage += CellResistance_One[i];
+				//*vSign = (CellResistance_One[i] < 0) ? "-" : "";
+				//vVal = (CellResistance_One[i] < 0) ? -CellResistance_One[i] : CellResistance_One[i];
+				//
+				//vInt1 = vVal;                  // Get the integer (678).
+				//vFrac = vVal - vInt1;      // Get fraction (0.0123).
+				//vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+				//
+				//sprintf (floatStr, "\r\n ALARM!! Temperature threshold for One:  %d.%04d \n\n", vInt1, vInt2);
+				//at64c1_transmit_str(floatStr);
 //
-			//if(CellResistance_One[i] < 3849 ||
-			   //CellResistance_Two[i] < 3849 ) {
-				//WRITE_BIT(PORTC,PINC1,LOW);
 //
-				////oVoltage += CellResistance_One[i];
-				////*vSign = (CellResistance_One[i] < 0) ? "-" : "";
-				////vVal = (CellResistance_One[i] < 0) ? -CellResistance_One[i] : CellResistance_One[i];
-				////
-				////vInt1 = vVal;                  // Get the integer (678).
-				////vFrac = vVal - vInt1;      // Get fraction (0.0123).
-				////vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
-				////
-				////sprintf (floatStr, "\r\n ALARM!! Temperature threshold for One:  %d.%04d \n\n", vInt1, vInt2);
-				////at64c1_transmit_str(floatStr);
-////
-////
-				////oVoltage += CellResistance_Two[i];
-				////*vSign = (CellResistance_Two[i] < 0) ? "-" : "";
-				////vVal = (CellResistance_Two[i] < 0) ? -CellResistance_Two[i] : CellResistance_Two[i];
-				////
-				////vInt1 = vVal;                  // Get the integer (678).
-				////vFrac = vVal - vInt1;      // Get fraction (0.0123).
-				////vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
-				////
-				////sprintf (floatStr, "\r\n ALARM!! Temperature threshold for Two:  %d.%04d \n\n", vInt1, vInt2);
-				////at64c1_transmit_str(floatStr);
-			//}
-		//}
+				//oVoltage += CellResistance_Two[i];
+				//*vSign = (CellResistance_Two[i] < 0) ? "-" : "";
+				//vVal = (CellResistance_Two[i] < 0) ? -CellResistance_Two[i] : CellResistance_Two[i];
+				//
+				//vInt1 = vVal;                  // Get the integer (678).
+				//vFrac = vVal - vInt1;      // Get fraction (0.0123).
+				//vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
+				//
+				//sprintf (floatStr, "\r\n ALARM!! Temperature threshold for Two:  %d.%04d \n\n", vInt1, vInt2);
+				//at64c1_transmit_str(floatStr);
+			}
+		}
+		
 		
 		//if(BIT_IS_SET(PORTC, PINC1)) WRITE_BIT(PORTC,PINC1,HIGH);
 		

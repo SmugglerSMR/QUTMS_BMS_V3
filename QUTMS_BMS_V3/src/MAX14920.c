@@ -91,8 +91,7 @@ void MAX14920_Enable(void) {
 		MAX14920_reg_write();
 		// Wait a bit before try again.
 		//Toggle_LED(5, 100, 1);
-	}
-	PORTB ^= 0b00001000;	// Indicate success of MAX14920 LED4
+	}	
 }
 
 void MAX14920_OffsetCallibration(void){
@@ -136,6 +135,18 @@ uint16_t MAX14920_ReadData(void) {
 //Need a structure, to keep what balancing command has been sent already, as a global variable.
 //uint16_t MAX14920_ReadCellVoltage(int cellN) {
 
+#define BOARD 4
+
+#if BOARD == 4
+
+#elif BOARD == 5
+
+
+
+#else
+
+#endif
+
 /*
 //  board # 1
 const float correctVoltage[11] = {   1.00, 
@@ -165,20 +176,20 @@ const float correctVoltage[11] = {  1.00,
 	1.06,     // 0
 1.0 };
 */
-// board # 2
-const float correctVoltage[11] = {
-	1.00,
-	2.99/2.7240,     // 9
-	2.99/3.6270,     // 8
-	2.99/3.6565,     // 7
-	2.99/3.6418,     // 6
-	2.99/3.69,     // 5
-	2.99/3.6418,     // 4
-	2.99/3.6516,     // 3
-	2.99/3.6418,    // 2
-	0.82,    // 1
-	2.99/3.7,     // 0
-1.0 };
+//// board # 2
+//const float correctVoltage[11] = {
+	//1.00,
+	//2.99/2.7240,     // 9
+	//2.99/3.6270,     // 8
+	//2.99/3.6565,     // 7
+	//2.99/3.6418,     // 6
+	//2.99/3.69,     // 5
+	//2.99/3.6418,     // 4
+	//2.99/3.6516,     // 3
+	//2.99/3.6418,    // 2
+	//0.82,    // 1
+	//2.99/3.7,     // 0
+//1.0 };
 /*
 // board # 3
 const float correctVoltage[11] = {
@@ -195,6 +206,22 @@ const float correctVoltage[11] = {
 	0.844,     // 0
 1.0 };
 */
+
+// board # 4
+const float correctVoltage[11] = {
+	1,
+	1.25,     // 9
+	1.024,     // 8
+	1.024,     // 7
+	1.024,     // 6
+	1.024,     // 5
+	1.024,     // 4
+	1.024,     // 3
+	1.024,    // 2
+	1.024,    // 1
+	1.024,     // 0
+1.0 };
+
 float MAX14920_ReadCellVoltage(int cellN) {
 	
 	// Disable Sampler??

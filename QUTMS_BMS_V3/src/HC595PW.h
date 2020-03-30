@@ -45,8 +45,8 @@ void HC595PW_Init_Registers(void);
 void HC595Pulse(void);
 void HC595Latch(void);
 void HC595PW_reg_write(uint8_t data);
-float HC595_CalcTemp(uint16_t resistance);
-void HC595PW_CD74HCT_send_read(uint16_t CellResistance_One[], uint16_t CellResistance_Two[]);
+float HC595_CalcTemp(float resistance);
+void HC595PW_CD74HCT_send_read(float CellResistance_One[], float CellResistance_Two[]);
 
 extern uint16_t DecToBin(float nn);
 extern void Toggle_LED(int id, int delay, int times);

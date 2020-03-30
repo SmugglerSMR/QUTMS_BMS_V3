@@ -33,8 +33,8 @@ void HC595PW_Init_Registers(void) {
 	////Make the Data(DS), Shift clock (SH_CP), Store Clock (ST_CP) lines output
 	DDRB |= ((1<<HC595PW_PIN_SH)|(1<<HC595PW_PIN_ST)|(1<<HC595PW_PIN_MR));	
 	DDRC |= (1<<HC595PW_PIN_DS);
-	
-	DDRD |= (~(1<<PIND5)|~(1<<PIND6));
+		
+	SET_INPUT(DDRD, PIND5); SET_INPUT(DDRD, PIND6);
 	// Reset register Disable Reset
 	WRITE_BIT(HC595PW_PORT_MR, HC595PW_PIN_MR, LOW);
 	_delay_us(55);
@@ -43,7 +43,6 @@ void HC595PW_Init_Registers(void) {
 	// TODO: Test if DS must be low
 	WRITE_BIT(HC595PW_PORT_DS, HC595PW_PIN_DS, LOW);
 	
-	PORTB ^= 0b00010000;
 }
 
 //Sends a clock pulse on SH_CP || SCK line
@@ -113,7 +112,7 @@ void HC595PW_reg_write(uint8_t data){
 	 HC595Latch();	
 }
 
-float HC595_CalcTemp(uint16_t resistance) {
+float HC595_CalcTemp(float resistance) {
 	// 1/T = 1/T0 + 1/B * ln( R0 * ( ( adcMax / adcVal ) - 1 ) / R0 )
 	// 1/T = 1/298.15 + 1/3380 * ln((1023 / 366) - 1 )
 	// 1/T = 0.003527
@@ -136,22 +135,23 @@ float HC595_CalcTemp(uint16_t resistance) {
 		PORTC ^= 0b00000001; // Indicate cold om LED3
 	return steinhart;
 }
-void HC595PW_CD74HCT_send_read(uint16_t CellResistance_One[], uint16_t CellResistance_Two[]) {
+#define num_ADC_Sensors 2
+void HC595PW_CD74HCT_send_read(float CellResistance_One[], float CellResistance_Two[]) {
 	Max_Resistance = 10000;
 	Min_Resistance = 10000;
 	Average_Resistance = 10000;
 	//Getting ADC value
 	//uint16_t ADC_SensorA, ADC_SensorB, ADC_SensorC, ADC_SensorD;
-	//SPI_send_byte((uint8_t)ADC_v);
-	int ADC_IDs[4] = {2,3};
-	uint16_t res_v[4] = {0};
-	//uint16_t temp[4] = {0};
+	
+	int ADC_IDs[num_ADC_Sensors] = {2,3};		// Only J4 used for sensing 
+	float res_v[num_ADC_Sensors] = {0};
+	
 	Max_Resistance = 0;	
-	for(int i=0;i<OVERALL_MESSAGE_PAIRS/2;i++){
+	for(int i=0;i<OVERALL_MESSAGE_PAIRS;i++){
+	//for(int i=4;i<5;i++){
 		//Write the data to HC595
 		//HC595PW_reg_write(sensor_pattern[i]);
-		HC595PW_reg_write(sensor_pattern[i]);
-		SPI_send_byte(sensor_pattern[i]);
+		HC595PW_reg_write(sensor_pattern[i]);		
 		_delay_us(73+19);
 		
 		//Value of the resitance for each ADC
@@ -163,34 +163,14 @@ void HC595PW_CD74HCT_send_read(uint16_t CellResistance_One[], uint16_t CellResis
 		// TODO: VARIABLE REDECLARATION. Sampeling removed.
 		// Combine loops
 		//for(int j=0;j<SAMPLING;j++) 
-		for(int k=0; k<2;k++)
+		for(int k=0; k<num_ADC_Sensors;k++)
 			res_v[k] = RES_VALUE / 
 				((1023 / (adc_read(ADC_IDs[k]))) - 1);
-			
-		// Test if ADC samples		
-		for (int j = 0; j < 2; j++) {			
-			if(res_v[j] > Max_Resistance) Max_Resistance = res_v[j];
-			if(res_v[j] < Min_Resistance) Min_Resistance = res_v[j];
-			
-			//Use for Alarm line instead
-			//if(res_v[j]==0x00) PORTC ^= 0b00000001; // Indicate fault of reading				
-			
-			//temp[i] = DecToBin(HC595_CalcTemp(res_v[i]/SAMPLING));	
-			//temp[j] = (res_v[j]);	
-			// Send to SPI to see
-			//SPI_send_byte((uint8_t)(temp[j] >> 8));
-			//SPI_send_byte((uint8_t)temp[j]);	
-			//_delay_us(50);			
-			_delay_us(50);
-		}			
+			//res_v[k] = RES_VALUE / (1023 / (adc_read(ADC_IDs[k]) - 1));			
+		
 		
 		CellResistance_One[i] = res_v[0];
 		CellResistance_Two[i] = res_v[1];
-		//SPI_send_byte(steinhart3);
-		//SensorTemp[16+i] = 0b00001111;
-		//SensorTemp[32+i] = adc_read(2) >> 2;
-		//SensorTemp[48+i] = adc_read(3) >> 2;
-		_delay_ms(10); //TODO: Get the smallest value
-		
+		_delay_ms(10); //TODO: Get the smallest value		
 	}
 }
