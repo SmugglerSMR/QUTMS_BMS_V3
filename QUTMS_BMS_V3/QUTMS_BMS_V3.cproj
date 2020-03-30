@@ -64,7 +64,7 @@
       </framework-data>
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.atmelice</avrtool>
-    <avrtoolserialnumber>J42700012636</avrtoolserialnumber>
+    <avrtoolserialnumber>J41800098214</avrtoolserialnumber>
     <avrdeviceexpectedsignature>0x1E9684</avrdeviceexpectedsignature>
     <com_atmel_avrdbg_tool_atmelice>
       <ToolOptions>
@@ -74,7 +74,7 @@
         <InterfaceName>ISP</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.atmelice</ToolType>
-      <ToolNumber>J42700012636</ToolNumber>
+      <ToolNumber>J41800098214</ToolNumber>
       <ToolName>Atmel-ICE</ToolName>
     </com_atmel_avrdbg_tool_atmelice>
     <avrtoolinterface>ISP</avrtoolinterface>

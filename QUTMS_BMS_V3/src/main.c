@@ -333,7 +333,7 @@ int main (void)
 			vFrac = vVal - vInt1;      // Get fraction (0.0123).
 			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
 						
-			sprintf (floatStr, "Resistance 1:  %d.%04d \n\n", vInt1, vInt2);
+			sprintf (floatStr, "Resistance ONE:  %d.%04d ", vInt1, vInt2);
 			at64c1_transmit_str(floatStr);
 			
 			*vSign = (CellResistance_Two[i] < 0) ? "-" : "";
@@ -343,7 +343,7 @@ int main (void)
 			vFrac = vVal - vInt1;      // Get fraction (0.0123).
 			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
 			
-			sprintf (floatStr, "Resistance 2:  %d.%04d \n\n", vInt1, vInt2);
+			sprintf (floatStr, "Resistance TWO:  %d.%04d \n", vInt1, vInt2);
 			at64c1_transmit_str(floatStr);
 			
 			_delay_us(5);

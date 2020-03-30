@@ -10,6 +10,9 @@
 #include "ADC.h"
 #include "SPI.h"
 
+#include "USART.h"
+char floatStr[100];
+
 uint8_t sensor_pattern[OVERALL_MESSAGE_PAIRS]={
 	(I7U8 | I7U9),
 	(I6U8 | I6U9),
@@ -113,7 +116,7 @@ void HC595PW_reg_write(uint8_t data){
 	 HC595Latch();	
 }
 
-float HC595_CalcTemp(uint16_t resistance) {
+double HC595_CalcTemp(double resistance) {
 	// 1/T = 1/T0 + 1/B * ln( R0 * ( ( adcMax / adcVal ) - 1 ) / R0 )
 	// 1/T = 1/298.15 + 1/3380 * ln((1023 / 366) - 1 )
 	// 1/T = 0.003527
@@ -125,18 +128,17 @@ float HC595_CalcTemp(uint16_t resistance) {
 	steinhart += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
 	steinhart = 1.0 / steinhart;                 // Invert
 	steinhart -= 273.15;                         // convert to C
-	
-	//*(float*)(bytes) = steinhart*10;  // convert float to bytes
-	//SPI_send_byte((uint8_t)bytes[0]);
-	//SPI_send_byte((uint8_t)bytes[1]);
-	//SPI_send_byte((uint8_t)bytes[2]);
-	//SPI_send_byte((uint8_t)bytes[3]);
-	
-	if(steinhart >= 50.0 || steinhart <= 5)
-		PORTC ^= 0b00000001; // Indicate cold om LED3
+		
 	return steinhart;
 }
 void HC595PW_CD74HCT_send_read(double CellResistance_One[], double CellResistance_Two[]) {
+	
+	// Reset Storage with latching
+	WRITE_BIT(HC595PW_PORT_MR, HC595PW_PIN_MR, LOW);
+	_delay_us(55);
+	WRITE_BIT(HC595PW_PORT_MR, HC595PW_PIN_MR, HIGH);		
+	HC595Latch();
+
 	Max_Resistance = 10000;
 	Min_Resistance = 10000;
 	Average_Resistance = 10000;
@@ -146,12 +148,13 @@ void HC595PW_CD74HCT_send_read(double CellResistance_One[], double CellResistanc
 	int ADC_IDs[2] = {2,3};
 	double res_v[2] = {0};
 	//uint16_t temp[4] = {0};
-	Max_Resistance = 0;
-	SPI_send_byte(0b11110000);
+	Max_Resistance = 0;	
 	for(int i=0;i<OVERALL_MESSAGE_PAIRS;i++){
+		//HC595PW_reg_write(0x00);
+		//_delay_us(55);
 		//Write the data to HC595
-		//HC595PW_reg_write(sensor_pattern[i]);
-		HC595PW_reg_write(sensor_pattern[i]);		
+		HC595PW_reg_write(sensor_pattern[i]);
+		
 		_delay_us(73+19);
 		//_delay_ms(10);
 		
@@ -172,8 +175,8 @@ void HC595PW_CD74HCT_send_read(double CellResistance_One[], double CellResistanc
 			
 		// Test if ADC samples						
 		
-		CellResistance_One[i] = res_v[0];
-		CellResistance_Two[i] = res_v[1];
+		CellResistance_One[i] = HC595_CalcTemp(res_v[0]);
+		CellResistance_Two[i] = HC595_CalcTemp(res_v[1]);
 		//SPI_send_byte(steinhart3);
 		//SensorTemp[16+i] = 0b00001111;
 		//SensorTemp[32+i] = adc_read(2) >> 2;

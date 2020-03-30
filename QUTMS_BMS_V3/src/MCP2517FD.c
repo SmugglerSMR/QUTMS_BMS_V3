@@ -256,9 +256,7 @@ void MCP2517_init(void) {
 			//i++;
 			////uart0_transmit(MCP2517_MODE_SELECT_ERROR);
 		//}
-	}
-	SPI_send_byte(0b11111111);	
-	PORTD ^= 0b00000001;
+	}	
 }
 
 

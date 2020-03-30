@@ -45,7 +45,7 @@ void HC595PW_Init_Registers(void);
 void HC595Pulse(void);
 void HC595Latch(void);
 void HC595PW_reg_write(uint8_t data);
-float HC595_CalcTemp(uint16_t resistance);
+double HC595_CalcTemp(double resistance);
 void HC595PW_CD74HCT_send_read(double CellResistance_One[], double CellResistance_Two[]);
 
 extern uint16_t DecToBin(float nn);
