@@ -130,7 +130,7 @@ uint16_t MAX14920_ReadData(void) {
 //Need a structure, to keep what balancing command has been sent already, as a global variable.
 //uint16_t MAX14920_ReadCellVoltage(int cellN) {
 
-#define BOARD 2
+#define BOARD 3
 
 #if BOARD == 1
 const float correctVoltage[11] = {   1.00,
@@ -186,7 +186,7 @@ const float correctVoltage[11] = {	1,
 1.0 };
 #elif BOARD == 5
 const float correctVoltage[11] = {  1.00,
-	1.79,     // 9
+	1.89,     // 9
 	1.017,     // 8
 	1.057,     // 7
 	1.057,     // 6
