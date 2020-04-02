@@ -78,7 +78,10 @@ int main (void)
 	
 	// Alarm Line
 	DDRC |= (1<<PINC1);
+	DDRC |= (1<<PINC0);
 	WRITE_BIT(PORTC, PINC1, HIGH);
+	WRITE_BIT(PORTC, PINC0, LOW);
+
 	
 	// Initialize MAX14920 micro controller
 	MAX14920_Clear_SPI_messages();
@@ -190,25 +193,25 @@ int main (void)
 		//TODO: Print order is reversed. The last cell around 0.4V lower than actual value.
 		// Make an additional tolerance information
 
-		//int j = 0;
-		//for(int i=9; i>=0; i--) {
-			//oVoltage += CellVoltages[i];
-			//*vSign = (CellVoltages[i] < 0) ? "-" : "";
-			//vVal = (CellVoltages[i] < 0) ? -CellVoltages[i] : CellVoltages[i];
-			//
-			//vInt1 = vVal;                  // Get the integer (678).
-			//vFrac = vVal - vInt1;      // Get fraction (0.0123).
-			//vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).			
-			//
-			//sprintf (floatStr, "\rCellVoltages %d:  %d.%04d and Alarm: %d \n", j, vInt1, vInt2, alarmV[i]);
-			//at64c1_transmit_str(floatStr);
-			//if(i == 4) {
-				//sprintf (floatStr, "\n\n");
-				//at64c1_transmit_str(floatStr);
-			//}			
-			//_delay_ms(50);
-			//j++;
-		//}		
+		int j = 0;
+		for(int i=9; i>=0; i--) {
+			oVoltage += CellVoltages[i];
+			*vSign = (CellVoltages[i] < 0) ? "-" : "";
+			vVal = (CellVoltages[i] < 0) ? -CellVoltages[i] : CellVoltages[i];
+			
+			vInt1 = vVal;                  // Get the integer (678).
+			vFrac = vVal - vInt1;      // Get fraction (0.0123).
+			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).			
+			
+			sprintf (floatStr, "\rCellVoltages %d:  %d.%04d and Alarm: %d", j, vInt1, vInt2, alarmV[i]);
+			at64c1_transmit_str(floatStr);
+			if(i == 4) {
+				sprintf (floatStr, "\n\n");
+				at64c1_transmit_str(floatStr);
+			}			
+			_delay_ms(50);
+			j++;
+		}		
 		//
 		//*vSign = (oVoltage < 0) ? "-" : "";
 		//vVal = (oVoltage < 0) ? -oVoltage : oVoltage;
@@ -366,6 +369,7 @@ int main (void)
 			sprintf (floatStr, "\r\n ALARM has been sent!!!");
 			at64c1_transmit_str(floatStr);
 			WRITE_BIT(PORTC,PINC1,LOW);	
+			WRITE_BIT(PORTC, PINC0, HIGH);
 		}
 				
 		for(int i=0;i<16;i++) {
@@ -376,7 +380,7 @@ int main (void)
 			vFrac = vVal - vInt1;      // Get fraction (0.0123).
 			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
 						
-			sprintf (floatStr, "Resistance ONE:  %d.%04d ", vInt1, vInt2);
+			sprintf (floatStr, "Temp ONE:  %d.%04d  ::: ", vInt1, vInt2);
 			at64c1_transmit_str(floatStr);
 			
 			*vSign = (CellResistance_Two[i] < 0) ? "-" : "";
@@ -386,14 +390,17 @@ int main (void)
 			vFrac = vVal - vInt1;      // Get fraction (0.0123).
 			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
 
-			sprintf (floatStr, "Resistance TWO:  %d.%04d \n", vInt1, vInt2);
+			sprintf (floatStr, "Temp TWO:  %d.%04d \n", vInt1, vInt2);
 			at64c1_transmit_str(floatStr);
 			
 			_delay_us(5);
 			
 			
-			//if(CellResistance_One[i] < 3849 ||
-			   //CellResistance_Two[i] < 3849 ) WRITE_BIT(PORTC,PINC1,LOW);
+			if(CellResistance_One[i] > 55.0 ||
+			   CellResistance_Two[i] > 55.0 ) {
+			    WRITE_BIT(PORTC,PINC1,LOW);
+				WRITE_BIT(PORTC,PINC0,HIGH);
+			}
 		}
 		
 		
