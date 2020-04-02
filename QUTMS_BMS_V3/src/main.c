@@ -43,7 +43,8 @@
 #include "ADC.h"
 #include "MAX14920.h"
 #include "HC595PW.h"
-#include "MCP2517FD.h"
+#include "mcp2515.h"
+#include "can.h"
 #include "USART.h"
 
 void IO_init(void);
@@ -87,7 +88,23 @@ int main (void)
 	//MAX14920_PerformDiagnosticsSecond();
 	
 	// CAN MEssage
-	//MCP2517_init();
+	uint8_t result = MCP2515_init();
+	if (result == 0) {
+		//send_str(PSTR(
+		//"\r\nMCP2515 have initialised\r\n"
+		//));
+		if (mcp_loopback() == 0) {
+			//send_str(PSTR("\r\nMCP2515 test is successfull\r\n" ));
+			_delay_ms(2000);
+			//send_can();
+			//receive_can();
+		}
+	}
+	else {
+		//snprintf(buf, sizeof(buf), "Error ( %d ): cannot address the MCP2515!\r\n", res);
+		//send_buffer( buf );
+	}
+	
 	//BMS_BOARD_DATA[0] = 1;	//Board functionality	
 	
 	// Loop forever for checks	
@@ -122,8 +139,27 @@ int main (void)
 	
 	int alarmV[10] = {0};
 	
-	while(1) {
-		//Toggle_LED(7, 200,1);
+	CanMessage msg1;
+	CAN_RESULT res;
+	int isLed = 0;
+	int i, j, k;
+	
+	char buf[32];
+	// char s_buffer[15];
+
+	init_msg(&msg1);
+	msg1.id = 0x0A000000;
+	msg1.ext_id = 1;
+	msg1.rtr = 0;
+	msg1.dlc = 5;
+	msg1.dta[0] = 0x01;
+	msg1.dta[2] = 0x01;
+	msg1.dta[4] = 0x01;
+	i = 0;
+	j = 0;
+	k = 2;
+	
+	while(1) {		
 		_delay_ms(500);
 		///////////
 		////snprintf(st_avr, 5, "%d", 17504);
@@ -219,7 +255,8 @@ int main (void)
 		////////////////////////////////////////////
 		//// 74HC595PW - Start Temperature readings
 		//// TODO: Record temperature for CAN
-		//HC595PW_CD74HCT_send_read(CellResistance_One, CellResistance_Two);
+
+		HC595PW_CD74HCT_send_read(CellResistance_One, CellResistance_Two);
 		////for(int i=0;i<32;i++) {
 			////at64c1_transmit_str("\n\rSensor Resistance: ");
 			////snprintf(st_volt, 5, "%d", CellVoltages[i]);
@@ -227,30 +264,52 @@ int main (void)
 		////}
 		//
 		////////////////////////////////////////////
-		//// MCP2517FD - CANBUS		
-		////BMS_BOARD_DATA[0] = OveralVoltage;	//Board functionality
-		////BMS_BOARD_DATA[1] = AverageCellVoltage;	//Board functionality
-		////BMS_BOARD_DATA[2] = Max_Resistance;	//Board functionality
-		////BMS_BOARD_DATA[4] = CellVoltages[0];	//Board functionality
-		////BMS_BOARD_DATA[5] = cycle;	//Board functionality
-		//
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte((uint8_t)(OveralVoltage>>8));
-		//SPI_send_byte((uint8_t)OveralVoltage);
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte((uint8_t)(AverageCellVoltage>>8));
-		//SPI_send_byte((uint8_t)AverageCellVoltage);
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte((uint8_t)(Max_Resistance>>8));
-		//SPI_send_byte((uint8_t)Max_Resistance);
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte((uint8_t)(Min_Resistance>>8));
-		//SPI_send_byte((uint8_t)Min_Resistance);
-		//SPI_send_byte(0b11111111);
-		//_delay_ms(100);
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte(0b11111111);
+		j++;
+		
+		if (j == k) {
+			j=0;
+			
+			if (isLed == 0) {
+				isLed = 1;
+				//send_str(PSTR("\r\nMCP2515: Try to send the message via CAN\r\n" ));
+				res = send_message(&msg1);
+				
+				if (res == CAN_OK) {
+					//send_str(PSTR("\r\nMCP2515: Message was written to the buffer\r\n" ));
+					
+					} else if (res == CAN_MCP_ERROR) {
+					//send_str(PSTR("Error ( MCP_ERROR ): could not send the message!\r\n\r\n" ));
+					} else if (res == CAN_ALL_TX_BUSY) {
+					//send_str(PSTR("Error ( ALL_TX_BUSY ): could not send the message!\r\n\r\n" ));
+					} else if (res == CAN_ERROR) {
+					//send_str(PSTR("Error ( ERROR ): could not send the message!\r\n\r\n" ));
+					} else if (res == CAN_NOT_FOUND) {
+					//send_str(PSTR("Error ( NOT_FOUND ): could not send the message!\r\n\r\n" ));
+					} else {
+					//snprintf(buf, sizeof(buf), "Error ( %d ): could not send the message!\r\n\r\n", res);
+					//send_buffer( buf );
+				}
+			}
+			
+			// r = recv_str(buf, sizeof(int16_t));
+			// snprintf(s_buffer, sizeof(s_buffer), "%d", r);
+			// send_buffer( s_buffer );
+			// if ( r == 0 ) {
+			// } else if ( r == 'w' ) {
+			//     isLed = 0;
+			//     send_str(PSTR("isLed 0 again"));
+			//     return;
+			// } else if ( r == 's' ) {
+			//     send_str(PSTR("switch to sniffer"));
+			//     return;
+			// }
+			
+			// i++;
+			// if (i>1000) i=0;
+			
+			//send_str(PSTR("\r\nMCP2515: Loop\r\n"));
+			
+		}
 		
 		// Checking status
 		_delay_us(10);
@@ -308,72 +367,33 @@ int main (void)
 			at64c1_transmit_str(floatStr);
 			WRITE_BIT(PORTC,PINC1,LOW);	
 		}
-
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte(0b11111111);
-		//SPI_send_byte(0b11111111);
-
-		// Temperature
-		for(int i=0;i<16;i++){
-			CellTemp_One[i]	+= CellResistance_One[i];
-			CellTemp_Two[i]	+= CellResistance_Two[i];			
-		}
-		
+				
 		for(int i=0;i<16;i++) {
-			
 			*vSign = (CellResistance_One[i] < 0) ? "-" : "";
 			vVal = (CellResistance_One[i] < 0) ? -CellResistance_One[i] : CellResistance_One[i];
 			
 			vInt1 = vVal;                  // Get the integer (678).
 			vFrac = vVal - vInt1;      // Get fraction (0.0123).
 			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
-			
-			sprintf (floatStr, "\r\n Temperature One:  %d.%04d ", vInt1, vInt2);
-
-
-			//sprintf (floatStr, "\r\n Temperature One:  %f  and Two: %f \n\n", CellResistance_One[i], CellResistance_Two[i]);
+						
+			sprintf (floatStr, "Resistance ONE:  %d.%04d ", vInt1, vInt2);
 			at64c1_transmit_str(floatStr);
-
-
+			
 			*vSign = (CellResistance_Two[i] < 0) ? "-" : "";
 			vVal = (CellResistance_Two[i] < 0) ? -CellResistance_Two[i] : CellResistance_Two[i];
 			
 			vInt1 = vVal;                  // Get the integer (678).
 			vFrac = vVal - vInt1;      // Get fraction (0.0123).
 			vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
-			
-			sprintf (floatStr, "Temperature Two:  %d.%04d \n", vInt1, vInt2);
+
+			sprintf (floatStr, "Resistance TWO:  %d.%04d \n", vInt1, vInt2);
 			at64c1_transmit_str(floatStr);
-
-			CellTemp_One[i] = 0;
-			CellTemp_Two[i] = 0;
-			if(CellResistance_One[i] < 3849 ||
-				CellResistance_Two[i] < 3849 ) {
-				WRITE_BIT(PORTC,PINC1,LOW);
-
-				//oVoltage += CellResistance_One[i];
-				//*vSign = (CellResistance_One[i] < 0) ? "-" : "";
-				//vVal = (CellResistance_One[i] < 0) ? -CellResistance_One[i] : CellResistance_One[i];
-				//
-				//vInt1 = vVal;                  // Get the integer (678).
-				//vFrac = vVal - vInt1;      // Get fraction (0.0123).
-				//vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
-				//
-				//sprintf (floatStr, "\r\n ALARM!! Temperature threshold for One:  %d.%04d \n\n", vInt1, vInt2);
-				//at64c1_transmit_str(floatStr);
-//
-//
-				//oVoltage += CellResistance_Two[i];
-				//*vSign = (CellResistance_Two[i] < 0) ? "-" : "";
-				//vVal = (CellResistance_Two[i] < 0) ? -CellResistance_Two[i] : CellResistance_Two[i];
-				//
-				//vInt1 = vVal;                  // Get the integer (678).
-				//vFrac = vVal - vInt1;      // Get fraction (0.0123).
-				//vInt2 = trunc(vFrac * 10000);  // Turn into integer (123).
-				//
-				//sprintf (floatStr, "\r\n ALARM!! Temperature threshold for Two:  %d.%04d \n\n", vInt1, vInt2);
-				//at64c1_transmit_str(floatStr);
-			}
+			
+			_delay_us(5);
+			
+			
+			//if(CellResistance_One[i] < 3849 ||
+			   //CellResistance_Two[i] < 3849 ) WRITE_BIT(PORTC,PINC1,LOW);
 		}
 		
 		
@@ -408,9 +428,9 @@ int main (void)
 
 void IO_init(void) {
 	// Initialize LEDs
-	DDRB = 0b00011000;	// LED-5 LED-4
-	DDRC = 0b00000001;	// LED-3 
-	DDRD = 0b00000011;	// LED 7 6
+	DDRB = 0b00000000;	// LED-5 LED-4
+	DDRC = 0b00000000;	// LED-3 
+	DDRD = 0b00000000;	// LED 7 6
 }
 
 /*

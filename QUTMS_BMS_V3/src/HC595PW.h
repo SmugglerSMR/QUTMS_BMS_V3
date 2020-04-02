@@ -27,7 +27,7 @@
 #define HC595PW_PIN_SH	PINB7
 
 //NCP18XH103F03RB - Related variables
-#define RES_VALUE 10000
+#define RES_VALUE 10000.0
 #define THERMISTORNOMINAL 10000
 //+1.7K is the offset
 // temp. for nominal resistance (almost always 25 C)
@@ -45,6 +45,7 @@ void HC595PW_Init_Registers(void);
 void HC595Pulse(void);
 void HC595Latch(void);
 void HC595PW_reg_write(uint8_t data);
+
 float HC595_CalcTemp(float resistance);
 void HC595PW_CD74HCT_send_read(float CellResistance_One[], float CellResistance_Two[]);
 

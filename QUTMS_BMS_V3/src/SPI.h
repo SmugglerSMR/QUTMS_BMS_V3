@@ -10,6 +10,7 @@
 #define SPI_H_
 
 #include <avr/io.h>
+#include <macros.h>
 //////////////////////////////
 /*		  CONFIGURE			*/
 
@@ -148,9 +149,55 @@ struct MAX14920_SPI_SDO {
 volatile struct MAX14920_SPI_SDI MAX14920_SPI_message;
 volatile struct MAX14920_SPI_SDO MAX14920_SPI_output;
 
+/* Platform dependent Registers, Ports and Pins*/
+#define DDR_SPI     DDRB    /* Data dir. register for port with SPI */
+#define PORT_SPI    PORTC   /* Port with SPI */
+#define PIN_MOSI    PINB1     /* MOSI pin on the PORTB_SPI */
+#define PIN_MISO    PINB0     /* MISO pin on the PORTB_SPI */
+#define PIN_SCK     PINB7     /* SCK pin on the PORTB_SPI */
+#define PIN_SS      PINC7     /* SS pin on the PORTB_SPI */
+
+#define PORT_CS     PORTC
+#define PIN_CS      PINC7
+
+#define SPI_INT_DDR   DDRD
+#define SPI_INT_PORT  PORTD
+#define SPI_INT       (1 << (PIND1))
+
 void SPI_init(void);
 uint8_t SPI_send_byte(uint8_t c);
 void spi_transfer_buffer(uint8_t *buf, uint8_t count);
 void spi_disable(void);
+
+/** \brief Transmiting databytes via the SPI
+ * 
+ * This function is transmitting data via the SPI interface. Input
+ * parameter is uns. char array. Data are transmited from the zero
+ * index 
+ * 
+ * \warning This is platform-dependent method!
+ * \param data[] Source data array
+ * \param length Array length
+ * 
+ */
+unsigned char spiMasterTRANSMIT(unsigned char data);
+
+/** \brief Settings of the CS pin
+ * 
+ * This function is used for setting of the CS pin. CS signal
+ * is inverted, so input 1 (true) means zero on the output.
+ * Otherwise is analogically the same.
+ * 
+ * \warning This is platform-dependent method!
+ * \param state Wished state
+ */
+void spiMasterChipSelect(unsigned char state);
+
+/** Initialization of hardware ext. interrupts
+ * \param *handler pointer to a function which handle occured interrupt.
+ * \return nothing
+ */
+//void extInterruptINIT(void (*handler)(void));
+
 
 #endif /* SPI_H_ */

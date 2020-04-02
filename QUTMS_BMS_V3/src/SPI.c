@@ -19,6 +19,9 @@ void SPI_init(void)
 	//SPCR = 0b01010001;
 	SPSR |= (1<<SPI2X);	// Double SPI Speed bit
 	SPDR = 0x00;		// Ensure data register has nothing in it
+	
+	/* Set MOSI and SCK output, all others input */
+	DDRC = (1<<PIN_SS);	
 }
 
 uint8_t SPI_send_byte(uint8_t c)
@@ -44,4 +47,42 @@ void spi_transfer_buffer(uint8_t *buf, uint8_t count)
 
 void spi_disable(void) {
 	SPDR = 0;
+}
+
+
+unsigned char spiMasterTRANSMIT(unsigned char data) {
+    /* Start transmission */
+    SPDR = data;
+    /* Wait for transmission complete */
+    while(!(SPSR & (1<<SPIF)));
+    /* SPDR must be stored as quickly
+        as possible (ref. ATMegaX ds) */
+    return SPDR;
+} 
+
+void spiMasterChipSelect(unsigned char state) {
+    /* What the user wants? (remember that the CS signal is inverted) */
+    if(state) {
+        /* Upper the CS pin */
+        SET_BIT(PORT_SPI, PIN_SS);        
+    } else {
+        /* Lower the CS pin */
+        CLEAR_BIT(PORT_SPI, PIN_SS);        
+    }
+}
+
+// Pointer to function which handle change on INT pin handler 
+void (*int_handler)(void);
+
+// Initialization of hardware ext. interrupts \param *handler pointer to a function which handle occured interrupt. * \return nothing
+void extInterruptINIT(void (*handler)(void)) {
+    // Set function pointer 
+    int_handler = handler;
+    // TODO: Initialize external interrupt on pin INT0 on failing edge 
+    //MCUCR |= (1 << ISC01);
+    //GICR |= (1 << INT0); 
+}
+// System interrupt handler 
+SIGNAL(INT0_vect) {
+    int_handler();
 }
